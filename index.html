@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Monaco GP Circuit Walk</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Ccircle%20cx%3D%2216%22%20cy%3D%2216%22%20r%3D%2215%22%20fill%3D%22%23111%22%20stroke%3D%22%23e8001d%22%20stroke-width%3D%222%22/%3E%3Ccircle%20cx%3D%2216%22%20cy%3D%2216%22%20r%3D%226%22%20fill%3D%22none%22%20stroke%3D%22%23e8001d%22%20stroke-width%3D%222%22/%3E%3Cline%20x1%3D%2216%22%20y1%3D%221%22%20x2%3D%2216%22%20y2%3D%2210%22%20stroke%3D%22%23e8001d%22%20stroke-width%3D%222.5%22%20stroke-linecap%3D%22round%22/%3E%3Cline%20x1%3D%222.5%22%20y1%3D%2221%22%20x2%3D%2210.5%22%20y2%3D%2217%22%20stroke%3D%22%23e8001d%22%20stroke-width%3D%222.5%22%20stroke-linecap%3D%22round%22/%3E%3Cline%20x1%3D%2229.5%22%20y1%3D%2221%22%20x2%3D%2221.5%22%20y2%3D%2217%22%20stroke%3D%22%23e8001d%22%20stroke-width%3D%222.5%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#e8001d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Monaco Walk">
+<link rel="apple-touch-icon" href="/icon.svg">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; font-family: 'Helvetica Neue', Arial, sans-serif; background: #0a0a0a; color: #f0f0f0; touch-action: pan-x pan-y; }
+#app { display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
+@media (min-width: 768px) {
+  #app { flex-direction: row; }
+  #sidebar { width: 360px; min-width: 300px; max-width: 400px; flex-shrink: 0; display: flex; flex-direction: column; border-right: 1px solid #1e1e1e; overflow: hidden; }
+  #map { flex: 1; min-width: 0; }
+  #panel { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+  #panel-scroll { flex: 1; overflow-y: auto; }
+  #panel-toggle-btn { display: none; }
+  #panel.collapsed #panel-scroll, #panel.collapsed #nav-row { display: block !important; }
+}
+@media (max-width: 767px) {
+  #sidebar { display: contents; }
+  #map { flex: 1; min-height: 0; }
+  #panel { flex-shrink: 0; }
+  #panel-scroll { max-height: 32vh; }
+  #panel.collapsed #panel-scroll { display: none; }
+  #panel.collapsed #nav-row { display: none; }
+}
+#topbar { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: #111; border-bottom: 1px solid #1e1e1e; flex-shrink: 0; }
+
+.f1-badge { background: #e8001d; color: #fff; font-size: 10px; font-weight: 800; padding: 3px 7px; border-radius: 2px; flex-shrink: 0; }
+#topbar-right { display: flex; gap: 6px; margin-left: auto; flex-shrink: 0; }
+.topbar-btn { background: #1c1c1c; border: 1px solid #2a2a2a; color: #aaa; font-size: 11px; padding: 5px 10px; border-radius: 3px; cursor: pointer; display: flex; align-items: center; gap: 5px; white-space: nowrap; transition: all 0.2s; }
+.topbar-btn:hover { border-color: #444; color: #ccc; }
+#fullscreen-btn.active { border-color: #5bc4ff; color: #5bc4ff; }
+@media (display-mode: standalone) { #fullscreen-btn { display: none; } }
+#wake-indicator { width: 7px; height: 7px; border-radius: 50%; background: #555; flex-shrink: 0; transition: background 0.3s; }
+#wake-indicator.active { background: #ffd700; }
+#gps-btn.active { border-color: #00cc77; color: #00cc77; }
+#gps-btn.searching { border-color: #ff6b00; color: #ff6b00; }
+#gps-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+.leaflet-tile-pane { filter: saturate(0.55) brightness(0.75); }
+.leaflet-control-attribution { display: none !important; }
+.leaflet-bar a { background: #111 !important; color: #aaa !important; border-color: #2a2a2a !important; }
+.corner-marker { display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: 700; color: #666; border-radius: 50%; border: 1.5px solid #2a2a2a; background: #111; cursor: pointer; transition: all 0.15s; line-height: 1; }
+.corner-marker.active { background: #e8001d; border-color: #e8001d; color: #fff; }
+.corner-marker.nearby { border-color: #ff8c00; color: #ff8c00; }
+.sf-pin { display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: 800; color: #fff; background: #e8001d; border: 2px solid #fff; border-radius: 3px; cursor: pointer; }
+.sf-pin.active { box-shadow: 0 0 0 3px rgba(232,0,29,0.35); }
+#panel { background: #111; border-top: 1px solid #1e1e1e; display: flex; flex-direction: column; }
+#progress-bar { height: 2px; background: #1e1e1e; flex-shrink: 0; }
+#progress-fill { height: 100%; background: #e8001d; transition: width 0.35s ease; }
+#panel-header { display: flex; align-items: stretch; flex-shrink: 0; border-bottom: 1px solid #1a1a1a; }
+#sector-strip { display: flex; flex: 1; overflow-x: auto; }
+.sector-btn { flex: 1; padding: 6px 3px; font-size: 8px; text-transform: uppercase; letter-spacing: 0.05em; border: none; border-right: 1px solid #1a1a1a; cursor: pointer; background: #0e0e0e; color: #3a3a3a; transition: all 0.15s; white-space: nowrap; min-width: 45px; }
+.sector-btn:last-child { border-right: none; }
+.sector-btn.active { color: #e8001d; background: #141414; }
+#panel-toggle-btn { background: #1a1a1a; border: none; border-left: 1px solid #2a2a2a; color: #aaa; padding: 0 14px; cursor: pointer; font-size: 13px; flex-shrink: 0; font-weight: 600; letter-spacing: 0.05em; }
+#panel-scroll { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+#panel-inner { display: flex; padding: 12px 14px 8px; gap: 10px; }
+#corner-info { flex: 1; min-width: 0; }
+#corner-num-row { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+#corner-badge { color: #fff; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 2px; flex-shrink: 0; }
+#corner-name { font-size: 15px; font-weight: 600; color: #fff; }
+#corner-meta { font-size: 11px; color: #555; margin-bottom: 6px; }
+#corner-desc { font-size: 12px; color: #999; line-height: 1.55; }
+#corner-stats { flex-shrink: 0; display: flex; flex-direction: column; gap: 10px; padding-left: 10px; border-left: 1px solid #1e1e1e; min-width: 72px; }
+.stat { display: flex; flex-direction: column; gap: 1px; }
+.stat-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: #3a3a3a; }
+.stat-val { font-size: 14px; font-weight: 600; color: #fff; }
+.stat-unit { font-size: 9px; color: #444; }
+#facts-section { padding: 0 14px 14px; }
+.facts-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: #333; margin-bottom: 8px; padding-top: 10px; border-top: 1px solid #1a1a1a; }
+.fact-item { display: flex; gap: 8px; padding: 8px 10px; border-radius: 3px; background: #141414; border: 1px solid #1e1e1e; margin-bottom: 6px; }
+.fact-icon { font-size: 14px; flex-shrink: 0; line-height: 1.5; }
+.fact-text { font-size: 11px; color: #777; line-height: 1.5; }
+.fact-text strong { color: #bbb; font-weight: 600; }
+.fact-tag { display: inline-block; font-size: 9px; padding: 1px 5px; border-radius: 2px; margin-right: 4px; font-weight: 700; letter-spacing: 0.05em; vertical-align: middle; }
+.fact-tag.crash  { background: #2a0000; color: #ff6b6b; }
+.fact-tag.record { background: #002210; color: #00cc77; }
+.fact-tag.legend { background: #1a1600; color: #ffd700; }
+.fact-tag.drama  { background: #1a0800; color: #ff8c00; }
+.fact-tag.fact   { background: #00141f; color: #5bc4ff; }
+#nav-row { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-top: 1px solid #1a1a1a; flex-shrink: 0; }
+.nav-btn { display: flex; align-items: center; gap: 6px; background: #161616; border: 1px solid #252525; color: #aaa; padding: 9px 16px; font-size: 12px; border-radius: 4px; cursor: pointer; transition: all 0.15s; font-weight: 500; }
+.nav-btn:hover:not(:disabled) { background: #1e1e1e; border-color: #3a3a3a; color: #ddd; }
+.nav-btn:disabled { opacity: 0.2; cursor: default; }
+#nav-center { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+#corner-counter { font-size: 13px; font-weight: 600; color: #ccc; }
+#corner-counter-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: #3a3a3a; }
+#about-overlay { display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.85); align-items: flex-end; justify-content: center; }
+#about-overlay.open { display: flex; }
+#about-sheet { background: #111; border-top: 1px solid #222; border-radius: 12px 12px 0 0; width: 100%; max-width: 560px; padding: 24px 20px 32px; max-height: 90vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+@media (min-width: 768px) { #about-overlay { align-items: center; } #about-sheet { border-radius: 8px; max-height: 80vh; } }
+#about-sheet h2 { font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px; }
+.about-sub { font-size: 12px; color: #555; margin-bottom: 20px; }
+.about-section { margin-bottom: 18px; }
+.about-section h3 { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: #444; margin-bottom: 8px; }
+.about-section p { font-size: 13px; color: #888; line-height: 1.6; }
+.about-section p + p { margin-top: 8px; }
+.about-divider { border: none; border-top: 1px solid #1e1e1e; margin: 16px 0; }
+.data-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.data-pill { font-size: 10px; padding: 2px 8px; border-radius: 2px; background: #002210; border: 1px solid #003a1a; color: #00cc77; }
+.coffee-btn { display: flex; align-items: center; gap: 10px; background: #1a1200; border: 1px solid #3a2800; border-radius: 6px; padding: 12px 16px; text-decoration: none; color: #ffcc44; font-size: 13px; font-weight: 600; margin-top: 10px; transition: background 0.15s; }
+.coffee-btn:hover { background: #251900; }
+.coffee-icon { font-size: 20px; flex-shrink: 0; }
+.coffee-meta { display: flex; flex-direction: column; gap: 2px; }
+.coffee-meta span { font-size: 11px; color: #886622; font-weight: 400; }
+.about-close { width: 100%; padding: 10px; margin-top: 10px; background: #1a1a1a; border: 1px solid #2a2a2a; color: #888; font-size: 13px; border-radius: 4px; cursor: pointer; }
+.about-close:hover { background: #222; }
+#welcome-overlay { position: fixed; inset: 0; z-index: 10000; background: rgba(0,0,0,0.92); display: flex; align-items: flex-end; justify-content: center; }
+#welcome-overlay.hidden { display: none; }
+#welcome-sheet { background: #111; border-top: 1px solid #222; border-radius: 12px 12px 0 0; width: 100%; max-width: 560px; padding: 26px 20px 34px; max-height: 92vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+@media (min-width: 768px) { #welcome-overlay { align-items: center; } #welcome-sheet { border-radius: 10px; max-height: 82vh; } }
+.welcome-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+.welcome-f1 { background: #e8001d; color: #fff; font-size: 13px; font-weight: 800; padding: 4px 9px; border-radius: 3px; }
+.welcome-title { font-size: 18px; font-weight: 700; color: #fff; }
+.welcome-sub { font-size: 13px; color: #555; margin-bottom: 18px; }
+.welcome-divider { border: none; border-top: 1px solid #1e1e1e; margin: 16px 0; }
+.welcome-steps { display: flex; flex-direction: column; gap: 11px; }
+.welcome-step { display: flex; gap: 12px; align-items: flex-start; }
+.step-num { width: 22px; height: 22px; border-radius: 50%; background: #e8001d; color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+.step-text { font-size: 12px; color: #888; line-height: 1.6; }
+.step-text strong { color: #ccc; }
+.welcome-start { width: 100%; padding: 13px; background: #e8001d; border: none; color: #fff; font-size: 14px; font-weight: 600; border-radius: 5px; cursor: pointer; margin-top: 18px; letter-spacing: 0.03em; transition: background 0.15s; }
+.welcome-start:hover { background: #c8001a; }
+.welcome-skip { width: 100%; padding: 8px; background: transparent; border: none; color: #3a3a3a; font-size: 11px; cursor: pointer; margin-top: 6px; }
+.welcome-skip:hover { color: #555; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="sidebar">
+    <div id="topbar">
+      <span class="f1-badge">F1</span>
+      <div id="topbar-right">
+        <button class="topbar-btn" id="gps-btn" onclick="toggleGPS()"><span id="gps-dot"></span><span id="gps-label">GPS</span></button>
+        <button class="topbar-btn" id="fullscreen-btn" onclick="toggleFullscreen()" title="Fullscreen">⛶</button>
+        <button class="topbar-btn" onclick="openAbout()">About</button>
+        <button class="topbar-btn" onclick="showHelp()">Help</button>
+      </div>
+    </div>
+    <div id="panel">
+      <div id="progress-bar"><div id="progress-fill"></div></div>
+      <div id="panel-header">
+        <div id="sector-strip"></div>
+        <button id="panel-toggle-btn" onclick="togglePanel()">▾</button>
+      </div>
+      <div id="panel-scroll">
+        <div id="panel-inner">
+          <div id="corner-info">
+            <div id="corner-num-row"><span id="corner-badge">—</span><span id="corner-name">—</span></div>
+            <div id="corner-meta"></div>
+            <div id="corner-desc"></div>
+          </div>
+          <div id="corner-stats">
+            <div class="stat"><span class="stat-label">Apex</span><span class="stat-val" id="s-speed">—</span><span class="stat-unit">km/h</span></div>
+            <div class="stat"><span class="stat-label">Gear</span><span class="stat-val" id="s-gear">—</span></div>
+            <div class="stat"><span class="stat-label">Dist</span><span class="stat-val" id="s-dist">—</span><span class="stat-unit">km</span></div>
+          </div>
+        </div>
+        <div id="facts-section"></div>
+      </div>
+      <div id="nav-row">
+        <button class="nav-btn" id="prev-btn" onclick="navigate(-1)"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 2L4 7L9 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Prev</button>
+        <div id="nav-center"><span id="corner-counter">—</span><span id="corner-counter-label">of 20 stops</span></div>
+        <button class="nav-btn" id="next-btn" onclick="navigate(1)">Next<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 2L10 7L5 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      </div>
+    </div>
+  </div>
+
+  <div id="map"></div>
+
+  <div id="about-overlay" onclick="closeAboutIfBg(event)">
+    <div id="about-sheet">
+      <h2>Monaco GP Circuit Walk</h2>
+      <p class="about-sub">Free fan-made guide — S/F line + all 19 corners of the Circuit de Monaco</p>
+      <div class="about-section">
+        <h3>What this is</h3>
+        <p>A turn-by-turn walking guide to all 19 corners of the Monaco GP circuit, with GPS coordinates traced from the actual racing line, historical facts, and live GPS tracking that follows you as you walk.</p>
+        <div class="data-pills"><span class="data-pill">✓ No data collected</span><span class="data-pill">✓ GPS stays on-device</span><span class="data-pill">✓ Works offline after first load</span></div>
+      </div>
+      <hr class="about-divider">
+      <div class="about-section">
+        <h3>GPS tracking</h3>
+        <p>Uses your browser's built-in geolocation API — nothing external. Measures distance to the next corner every few seconds and auto-advances when you're within 25 metres. Allow location access when prompted. Battery/CPU impact is negligible — same as having Maps open.</p>
+      </div>
+      <hr class="about-divider">
+      <div class="about-section">
+        <h3>Data & attribution</h3>
+        <p>Racing line GPS from <a href="https://github.com/bacinger/f1-circuits" target="_blank" rel="noopener" style="color:#5bc4ff;text-decoration:none;font-weight:600;">bacinger/f1-circuits</a> on GitHub (MIT licence, OpenStreetMap source). Historical facts are original writing. Unofficial fan project — not affiliated with Formula One Licensing B.V. or the Automobile Club de Monaco.</p>
+      </div>
+      <hr class="about-divider">
+      <div class="about-section">
+        <h3>Made by Maris</h3>
+        <p>Data engineer based in Estonia. If you enjoyed the walk and feel like saying thanks:</p>
+        <a class="coffee-btn" href="https://buymeacoffee.com/justmaris" target="_blank" rel="noopener">
+          <span class="coffee-icon">☕</span>
+          <div class="coffee-meta">Buy me a coffee<span>buymeacoffee.com/justmaris</span></div>
+        </a>
+      </div>
+      <button class="about-close" onclick="closeAbout()">Close</button>
+    </div>
+  </div>
+
+  <div id="welcome-overlay">
+    <div id="welcome-sheet">
+      <div class="welcome-logo"><span class="welcome-f1">F1</span><span class="welcome-title">Monaco GP Circuit Walk</span></div>
+      <p class="welcome-sub">Walk all 19 corners of the Circuit de Monaco with historical facts and live GPS.</p>
+      <hr class="welcome-divider">
+      <div class="welcome-steps">
+        <div class="welcome-step"><div class="step-num">1</div><div class="step-text"><strong>Start at the S/F line</strong> on Boulevard Albert 1er — the red S/F marker on the map. That's where the race starts and ends each lap.</div></div>
+        <div class="welcome-step"><div class="step-num">2</div><div class="step-text"><strong>Use Prev / Next</strong> to walk corners in racing order, or tap any corner marker on the map to jump directly to it. Sector tabs skip between circuit sections.</div></div>
+        <div class="welcome-step"><div class="step-num">3</div><div class="step-text"><strong>Enable GPS</strong> (top right) and the app follows you automatically — it advances to the next corner when you're within 25 metres. Allow location access when prompted.</div></div>
+        <div class="welcome-step"><div class="step-num">4</div><div class="step-text"><strong>Collapse the panel</strong> with the <strong>▾</strong> button (top right of the info panel) to see more map. Tap it again or advance to the next corner to reopen.</div></div>
+        <div class="welcome-step"><div class="step-num">5</div><div class="step-text"><strong>Tunnel (T9):</strong> a pedestrian path runs the full 172m alongside the track. You can walk the entire tunnel section.</div></div>
+        <div class="welcome-step"><div class="step-num">6</div><div class="step-text"><strong>Install as an app</strong> — on iOS use <strong>Safari</strong> → Share → "Add to Home Screen" (Brave on iOS doesn't support this yet). On Android use Chrome or Brave → install prompt or browser menu. Works offline after first load.</div></div>
+        <div class="welcome-step"><div class="step-num">7</div><div class="step-text"><strong>Screen stays on</strong> automatically when GPS is active. Use the <strong>⛶</strong> button in the top bar to go fullscreen (Android/desktop).</div></div>
+      </div>
+      <hr class="welcome-divider">
+      <p style="font-size:11px;color:#3a3a3a;">No data collected. GPS stays on your device. Fan project — not affiliated with F1 or ACM.</p>
+      <button class="welcome-start" onclick="startWalk()">Start the walk →</button>
+      <button class="welcome-skip" onclick="dismissWelcome()">Skip intro</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Racing line: bacinger/f1-circuits (MIT), 160 pts smoothed to 178 (max gap 45m)
+const racingLine = [
+  [43.739404,7.427191],[43.739494,7.427171],[43.739575,7.427199],[43.739686,7.427271],[43.739764,7.427339],[43.739958,7.427551],
+  [43.740222,7.427820],[43.740487,7.428090],[43.740751,7.428359],
+  [43.741015,7.428628],[43.741091,7.428703],[43.741114,7.428814],[43.741086,7.428949],[43.741030,7.429043],[43.740942,7.429111],
+  [43.740843,7.429125],[43.740761,7.429128],[43.740694,7.429139],[43.740614,7.429195],[43.740553,7.429260],[43.740430,7.429381],
+  [43.740321,7.429463],[43.740255,7.429495],[43.740216,7.429536],[43.740203,7.429601],[43.740219,7.429676],[43.740261,7.429732],
+  [43.740321,7.429749],[43.740372,7.429712],[43.740422,7.429617],[43.740680,7.429336],[43.740742,7.429296],[43.740802,7.429295],
+  [43.740848,7.429317],[43.740891,7.429347],[43.740940,7.429479],[43.740978,7.429683],[43.741008,7.429794],[43.741041,7.429908],
+  [43.741081,7.430066],[43.741090,7.430238],[43.741057,7.430329],[43.740955,7.430363],
+  [43.740657,7.430347],[43.740359,7.430331],[43.740052,7.430267],[43.739746,7.430204],
+  [43.739356,7.430072],[43.739078,7.429925],[43.738760,7.429673],[43.738491,7.429383],
+  [43.738326,7.429173],[43.738160,7.428963],[43.738027,7.428662],[43.737894,7.428362],
+  [43.737767,7.428004],[43.737651,7.427659],[43.737534,7.427314],
+  [43.737418,7.426850],[43.737359,7.426507],[43.737301,7.426165],
+  [43.737251,7.425724],[43.737219,7.425490],[43.737170,7.425450],[43.737127,7.425447],
+  [43.737077,7.425433],[43.737028,7.425403],[43.737003,7.425304],[43.736986,7.425164],
+  [43.737050,7.425009],[43.737054,7.424924],
+  [43.737015,7.424513],[43.736976,7.424101],[43.736937,7.423690],
+  [43.736905,7.423383],[43.736873,7.423077],[43.736841,7.422795],[43.736809,7.422513],
+  [43.736792,7.422357],[43.736779,7.422253],[43.736723,7.422178],[43.736555,7.422060],
+  [43.736392,7.421960],[43.736229,7.421880],[43.736113,7.421845],[43.735911,7.421808],
+  [43.735565,7.421805],[43.735479,7.421810],[43.735420,7.421845],[43.735363,7.421915],
+  [43.735281,7.422070],[43.735212,7.422174],[43.735138,7.422219],[43.735031,7.422237],
+  [43.734663,7.422325],[43.734295,7.422413],[43.734166,7.422458],[43.734125,7.422472],
+  [43.734070,7.422468],[43.734026,7.422423],[43.733976,7.422324],[43.733941,7.422225],
+  [43.733891,7.422202],[43.733786,7.422221],[43.733547,7.422334],[43.733367,7.422437],
+  [43.733225,7.422542],[43.733039,7.422722],[43.732874,7.422948],[43.732805,7.423114],
+  [43.732742,7.423300],[43.732712,7.423393],[43.732674,7.423440],[43.732557,7.423494],
+  [43.732495,7.423468],[43.732459,7.423384],[43.732388,7.423011],[43.732364,7.422803],
+  [43.732362,7.422666],[43.732375,7.422544],[43.732417,7.422467],[43.732452,7.422420],
+  [43.732534,7.422418],[43.732600,7.422400],[43.732681,7.422364],[43.732868,7.422154],
+  [43.733047,7.422000],[43.733181,7.421880],[43.733435,7.421753],
+  [43.733789,7.421613],[43.734142,7.421472],[43.734370,7.421395],[43.734614,7.421341],
+  [43.734970,7.421271],[43.735202,7.421244],[43.735433,7.421216],
+  [43.735735,7.421216],[43.735966,7.421234],[43.736206,7.421269],[43.736373,7.421331],
+  [43.736523,7.421401],[43.736615,7.421435],[43.736696,7.421452],[43.736819,7.421444],
+  [43.736895,7.421441],[43.736940,7.421475],[43.736970,7.421562],[43.737007,7.421774],
+  [43.737013,7.421963],[43.737036,7.422222],[43.737069,7.422583],[43.737110,7.422903],
+  [43.737196,7.423310],[43.737283,7.423717],[43.737373,7.424172],[43.737422,7.424589],
+  [43.737439,7.424875],[43.737497,7.425098],[43.737607,7.425420],[43.737718,7.425743],
+  [43.737802,7.426026],[43.737869,7.426439],[43.737904,7.426784],[43.737944,7.427113],
+  [43.737991,7.427298],[43.738093,7.427523],[43.738240,7.427718],[43.738364,7.427828],
+  [43.738494,7.427877],[43.738630,7.427869],[43.738758,7.427837],[43.738899,7.427767],
+  [43.739033,7.427674],[43.739115,7.427528],[43.739210,7.427388],[43.739253,7.427320],
+  [43.739299,7.427257],[43.739404,7.427191],
+];
+
+// Corner positions are read directly from racingLine by index — no coordinate duplication.
+// rl(n) returns the [lat, lng] stored at racingLine[n].
+function rl(n) { return { lat: racingLine[n][0], lng: racingLine[n][1] }; }
+
+const SF_POS = [43.735700, 7.421216];
+
+const stops = [
+  { id:0, label:"S/F", name:"Start / Finish Line", isSF:true,
+    ...rl(135), sector:0, speed:null, gear:null, dist:"0.00",
+    desc:"Boulevard Albert 1er — the pit straight. This is where each lap begins and ends. The pit lane entrance is on your left heading west; cars cross the line at around 270 km/h on a flying lap, having just exited T19 Anthony Noghes.",
+    facts:[
+      {icon:"🏁",tag:"fact",title:"3.337 km, 19 corners, 78 laps",text:"The Circuit de Monaco is <strong>3.337 km</strong> long — the shortest circuit on the F1 calendar. Drivers complete 78 laps, covering just 260 km. It's the only race exempt from the FIA's mandated 305 km minimum race distance."},
+      {icon:"📅",tag:"fact",title:"First race: 1929",text:"The Monaco Grand Prix was first held on <strong>14 April 1929</strong>, won by William Grover-Williams in a Bugatti. It became part of the Formula One World Championship at its very first season in 1950."},
+      {icon:"🏆",tag:"record",title:"Most wins: Ayrton Senna",text:"<strong>Ayrton Senna</strong> holds the record with 6 Monaco victories (1984, 1986, 1987, 1989, 1990, 1992). Graham Hill and Michael Schumacher both have 5. In 2024, Charles Leclerc became the first Monégasque to win in a championship round since 1931."},
+      {icon:"🔧",tag:"fact",title:"250 workers, 6 weeks to build",text:"Since the circuit uses public roads, it takes <strong>250 workers 6 weeks</strong> to erect barriers, grandstands and infrastructure, and 3 more weeks to dismantle everything after the race."},
+      {icon:"⏱",tag:"record",title:"Lap record: 1:12.909",text:"Set by <strong>Lewis Hamilton</strong> in a Mercedes W12 during the 2021 Monaco Grand Prix. Just 34% of the lap is spent at full throttle — the lowest of any circuit on the calendar."},
+      {icon:"🚗",tag:"fact",title:"Only pits not facing the track",text:"Monaco is the <strong>only F1 circuit where the pit lane doesn't face the racing surface</strong>. After a 2004 renovation, the garages were physically separated from the track by the pit lane itself."},
+    ]},
+  { id:1, label:"T1", name:"Sainte Dévote",
+    ...rl(145), sector:1, speed:210, gear:5, dist:"0.18",
+    desc:"Hard right-hander, the first corner of the lap. Cars sprint just 114m from the S/F line and arrive in under 10 seconds at 290 km/h. The inside wall is immediately lethal — late apex essential to stay left for the Beau Rivage climb.",
+    facts:[
+      {icon:"⛪",tag:"fact",title:"The chapel",text:"Named after <strong>Chapelle Sainte-Dévote</strong>, visible on your right — dedicated to the patron saint of Monaco, mentioned in records as far back as the 4th century AD."},
+      {icon:"💥",tag:"crash",title:"1996 — Opening lap carnage",text:"<strong>Coulthard, Alesi, Prost and Brundle</strong> all collided here on lap 1. Only 4 cars were classified as finishers at the end of the race."},
+      {icon:"💥",tag:"crash",title:"2024 — Pérez, Hülkenberg, Magnussen",text:"The 2024 race was <strong>red-flagged on lap 1</strong> after a heavy crash here between Pérez, Hülkenberg and Magnussen. Red Bull estimated £2.5–3 million in damage to Pérez's car alone."},
+      {icon:"⚡",tag:"fact",title:"Shortest pole-to-T1 in F1",text:"Just <strong>114 metres</strong> — the shortest run to the first corner on the entire F1 calendar."},
+    ]},
+  { id:2, label:"T2", name:"Beau Rivage",
+    ...rl(160), sector:1, speed:285, gear:7, dist:"0.45",
+    desc:"Steep uphill kink — flat in 7th gear at 285 km/h. Massive compression as the road crests. Not a braking point; stay wide left and keep your foot completely flat.",
+    facts:[
+      {icon:"📐",tag:"fact",title:"Steepest climb in F1",text:"Beau Rivage rises roughly <strong>18 metres</strong> from Sainte Dévote to Casino Square — the steepest sustained climb on any current F1 circuit."},
+      {icon:"🌊",tag:"fact",title:"'Beautiful shore'",text:"The street was historically the seafront before Monaco reclaimed land from the sea to expand Port Hercules in the 20th century. Cars climb what was once the edge of the Mediterranean."},
+    ]},
+  { id:3, label:"T3", name:"Massenet",
+    ...rl(167), sector:1, speed:220, gear:5, dist:"0.82",
+    desc:"Medium-speed left-hander at the summit of Beau Rivage. Brake from 280 to 220 km/h. The Casino towers on your right on exit. Named after the French opera composer Jules Massenet — this corner passes the Opera House which has a bust of him in front of it.",
+    facts:[
+      {icon:"🎵",tag:"fact",title:"Named after a composer",text:"<strong>Jules Massenet</strong> was a celebrated French Romantic composer who spent his final years in Monte Carlo and died there in 1912."},
+      {icon:"💥",tag:"crash",title:"2016 — Rosberg triggers yellow",text:"<strong>Nico Rosberg</strong> clipped the wall at Massenet in qualifying, triggering yellow flags just as Hamilton was about to improve. The fallout overshadowed the entire race weekend."},
+    ]},
+  { id:4, label:"T4", name:"Casino Square",
+    ...rl(0), sector:1, speed:155, gear:4, dist:"1.02",
+    desc:"Right-hander directly in front of the Casino de Monte-Carlo. 155 km/h, 4th gear. Extremely bumpy surface disrupts car balance. Right wall on exit unforgiving to anyone who runs wide.",
+    facts:[
+      {icon:"🎰",tag:"fact",title:"Locals banned from gambling here",text:"<strong>Monaco citizens are legally prohibited</strong> from gambling at Casino de Monte-Carlo — a 19th century rule by Prince Charles III to generate foreign revenue without taxing residents."},
+      {icon:"💥",tag:"crash",title:"2008 — Hamilton into Räikkönen",text:"<strong>Lewis Hamilton</strong> drove into the back of Kimi Räikkönen through Casino Square in 2008, breaking his front wing after misjudging the pace delta on fresh tyres."},
+    ]},
+  { id:5, label:"T5", name:"Mirabeau Haute",
+    ...rl(11), sector:2, speed:88, gear:2, dist:"1.21",
+    desc:"Tight downhill right-hander. Brake from 230 to 88 km/h. The hill drops sharply — braking point arrives earlier than expected. One of the few real overtaking spots at Monaco.",
+    facts:[
+      {icon:"🏎",tag:"drama",title:"One of only three overtaking zones",text:"Mirabeau Haute is one of <strong>only three realistic passing spots</strong> at Monaco (with the chicane and the hairpin). A late dive here has ended several championship battles."},
+      {icon:"💥",tag:"crash",title:"2021 — Verstappen FP3",text:"<strong>Max Verstappen</strong> clipped the barrier at Mirabeau during FP3 2021, destroying his Red Bull and leaving barely enough time to rebuild for qualifying."},
+    ]},
+  { id:6, label:"T6", name:"Fairmont Hairpin",
+    ...rl(25), sector:2, speed:47, gear:1, dist:"1.38",
+    desc:"The slowest corner in Formula 1. 47 km/h, 1st gear, maximum steering lock. Brake from ~200 km/h. The Fairmont hotel is 2 metres from the outside of the car. The most photographed corner on the calendar.",
+    facts:[
+      {icon:"🐌",tag:"record",title:"Slowest corner in F1",text:"At just <strong>47 km/h</strong> in 1st gear, this is the single slowest corner on the F1 calendar. A recreational cyclist could almost keep pace. Special steering racks with larger pinion gears are fitted at Monaco specifically for this corner."},
+      {icon:"💛",tag:"legend",title:"Senna vs. Prost, 1984",text:"In the <strong>1984 Monaco GP</strong>, Senna in an underpowered Toleman was closing on Prost at 2–3 sec/lap in the wet. The race was controversially red-flagged just as Senna was about to overtake. Many believe it was stopped to hand Prost the win. Senna never forgot it."},
+      {icon:"🏨",tag:"fact",title:"Name changes with the hotel",text:"The corner was originally called Station Hairpin, then Loews, Grand Hotel, Sun Casino — it changes <strong>every time the hotel above it changes ownership</strong>. Currently Fairmont, hence Fairmont Hairpin."},
+      {icon:"👴",tag:"legend",title:"Graham Hill — 'Mr. Monaco'",text:"<strong>Graham Hill</strong> won Monaco five times in the 1960s. He is the only driver to have completed the Triple Crown: Monaco GP, Indianapolis 500 and Le Mans 24 Hours."},
+    ]},
+  { id:7, label:"T7", name:"Mirabeau Bas",
+    ...rl(33), sector:2, speed:72, gear:2, dist:"1.52",
+    desc:"Right-hander on the descent after the Fairmont Hairpin. 72 km/h. Both Mirabeau corners sandwich the hairpin and are named after the old Hotel Mirabeau that once stood nearby. 'Bas' means low in French — this is the lower of the two.",
+    facts:[
+      {icon:"💡",tag:"fact",title:"The Mirabeau hotel",text:"The <strong>old Hotel Mirabeau</strong> that gave these corners their names was converted into a residential building in 2007. The hotel stood near this section of the descent for decades."},
+      {icon:"💥",tag:"crash",title:"1996 — Schumacher at Mirabeau Bas",text:"<strong>Michael Schumacher</strong> made an uncharacteristic error during lap 1 of the 1996 race, losing control here and crashing out behind championship rival Damon Hill."},
+    ]},
+  { id:8, label:"T8", name:"Portier",
+    ...rl(41), sector:2, speed:130, gear:3, dist:"1.82",
+    desc:"Right-hander at the harbour edge, 130 km/h in 3rd gear. The harbour wall runs directly alongside on the left. A good exit is critical for maximum speed into the tunnel approach.",
+    facts:[
+      {icon:"😢",tag:"legend",title:"Senna's crash — 1988",text:"Leading by nearly a minute in the <strong>1988 Monaco GP</strong>, Senna inexplicably went straight on at Portier and hit the barrier. He walked back to his Monte Carlo apartment and didn't speak to his team for hours. He later said he had entered a mental 'trance' from his own pace."},
+      {icon:"🏘",tag:"fact",title:"Named after a neighbourhood",text:"Le Portier is one of Monaco's oldest neighbourhoods, right by this corner near the harbour. A 'portier' was also the lowest order of Roman Catholic seminarians."},
+    ]},
+  { id:9, label:"T9", name:"Tunnel",
+    ...rl(52), sector:2, speed:290, gear:8, dist:"1.97",
+    desc:"172-metre tunnel — flat out at 285–290 km/h in 8th gear, slightly downhill. Entry is a left-hander at ~105 km/h where drivers commit entirely on muscle memory. Concrete walls amplify engine noise to extraordinary levels. A pedestrian path runs the full length on the right side.",
+    facts:[
+      {icon:"🔊",tag:"fact",title:"Loudest place on the circuit",text:"In the V10 era, noise inside the tunnel exceeded <strong>130 dB</strong>. Even with today's hybrid V6 cars, standing on the pedestrian walkway as cars pass is felt physically in the chest."},
+      {icon:"💥",tag:"crash",title:"1994 — Wendlinger's accident",text:"<strong>Karl Wendlinger</strong> crashed at the chicane after the tunnel exit during 1994 practice, hitting the barrier at speed and falling into a coma. He survived but the incident drove major safety revisions at Monaco."},
+      {icon:"🚫",tag:"fact",title:"DRS banned in the tunnel since 2011",text:"Drivers lobbied the FIA to ban DRS in the tunnel in <strong>2011</strong> due to the extreme instability risk at 290 km/h next to concrete walls. The ban has remained ever since."},
+      {icon:"🚶",tag:"fact",title:"Walkable pedestrian path",text:"The path runs the full 172 metres on the right side. Outside race week you can walk the exact stretch that an F1 car covers at 290 km/h in under 2.2 seconds."},
+    ]},
+  { id:10, label:"T10", name:"Nouvelle Chicane — Left",
+    ...rl(62), sector:2, speed:115, gear:3, dist:"2.31",
+    desc:"Heaviest braking zone on the circuit. Cars emerge from the tunnel into bright sunlight and shed 175 km/h in ~85 metres. Left-hand entry of the Nouvelle Chicane — the best overtaking opportunity of the race.",
+    facts:[
+      {icon:"🏆",tag:"record",title:"175 km/h shed in ~85 metres",text:"The biggest speed reduction in the shortest distance on the entire lap — motorway speed to a side street in the length of a tennis court."},
+      {icon:"💥",tag:"crash",title:"2008 — Hamilton's wet-weather dive",text:"<strong>Lewis Hamilton</strong> dived past Räikkönen here in the wet 2008 race with a breathtaking late-braking move, later voted one of the overtakes of the decade."},
+      {icon:"📅",tag:"fact",title:"'Nouvelle' since 1986",text:"This chicane was modified in <strong>1986</strong> and renamed Nouvelle (new) Chicane. Before then, cars flew from the tunnel exit onto the harbour road at near-full speed with almost no chicane."},
+    ]},
+  { id:11, label:"T11", name:"Nouvelle Chicane — Right",
+    ...rl(66), sector:2, speed:95, gear:3, dist:"2.46",
+    desc:"Right-hand exit of the Nouvelle Chicane. Clean exit essential for the fast Tabac corner ahead. The harbour is directly below — hundreds of superyachts moor here during race week.",
+    facts:[
+      {icon:"⚓",tag:"fact",title:"Superyacht view from below",text:"The chicane sits <strong>directly above Port Hercules</strong>. During race week some berths cost over €1 million for the week — the most exclusive car park in the world."},
+      {icon:"📊",tag:"fact",title:"Safety car restart flashpoint",text:"High speed differentials, zero run-off. <strong>Multiple races have been decided by contact here</strong> at safety car restarts."},
+    ]},
+  { id:12, label:"T12", name:"Tabac",
+    ...rl(79), sector:2, speed:185, gear:5, dist:"2.58",
+    desc:"Fast left-hander at 185 km/h along the waterfront — the gateway into the Swimming Pool complex. One of the most technically demanding corners: entry speed is high, kerbs are aggressive, any imbalance carries through.",
+    facts:[
+      {icon:"🚬",tag:"fact",title:"Named after a tobacconist",text:"A <strong>tobacco kiosk</strong> used to stand on the outside of this corner. The name has stuck for over 70 years despite the shop being long gone."},
+      {icon:"💥",tag:"crash",title:"2021 — Pérez red-flag controversy",text:"<strong>Sergio Pérez</strong> lost his Red Bull at Tabac during 2021 qualifying, triggering a red flag just as Leclerc was about to improve. Leclerc's pole time stood — and he went on to win the race."},
+      {icon:"🌊",tag:"crash",title:"1950 — The rogue wave",text:"A freak wave hit the track <strong>right at Tabac</strong> on lap 1 of the very first Monaco F1 race in 1950, sending seawater across the circuit and spinning multiple cars. Fangio, who had stopped to watch, won."},
+    ]},
+  { id:13, label:"T13", name:"Louis Chiron — Right",
+    ...rl(88), sector:3, speed:175, gear:5, dist:"2.66",
+    desc:"First of the Swimming Pool corners alongside the Stade Nautique Rainier III. 175 km/h, 5th gear right-hander. Aggressive kerbs launch the car if hit. Named after Monaco's most celebrated racing driver.",
+    facts:[
+      {icon:"🏎",tag:"legend",title:"Who was Louis Chiron?",text:"<strong>Louis Chiron</strong> was a Monégasque racing driver who competed from the 1920s to 1950s and remains the last local driver to win Monaco — at the 1931 non-championship race. He was Bugatti's star driver, lived to 86, and drove the pace car at Monaco for decades."},
+      {icon:"🏊",tag:"fact",title:"A real public saltwater pool",text:"The <strong>Stade Nautique Rainier III</strong> alongside you is fully operational year-round — about €12 entry on any non-race day."},
+    ]},
+  { id:14, label:"T14", name:"Louis Chiron — Left",
+    ...rl(91), sector:3, speed:162, gear:5, dist:"2.74",
+    desc:"Left-hand exit of the Louis Chiron complex at 162 km/h, forming the fast S alongside the pool. Rear stability is critical — oversteer sends you directly into concrete. Short straight to the Piscine chicane after this.",
+    facts:[
+      {icon:"💥",tag:"crash",title:"2017 — Verstappen hits Räikkönen",text:"<strong>Max Verstappen</strong> collided with Kimi Räikkönen through this complex in 2017, earning a penalty. Räikkönen's verdict: 'not ideal.'"},
+    ]},
+  { id:15, label:"T15", name:"Piscine — Right",
+    ...rl(98), sector:3, speed:140, gear:4, dist:"2.82",
+    desc:"Right-hander of the Piscine chicane. The entire Piscine section was added in 1973 when Monaco completed harbour land reclamation — before then, cars took a completely different route back from Tabac.",
+    facts:[
+      {icon:"📅",tag:"fact",title:"Added in 1973",text:"The Piscine section was <strong>added in 1973</strong> along with La Rascasse, after Monaco's harbour reclamation was complete. It added 0.133 km to the circuit and gave the lap its current character."},
+    ]},
+  { id:16, label:"T16", name:"Piscine — Left",
+    ...rl(101), sector:3, speed:120, gear:3, dist:"2.90",
+    desc:"Left-hand exit of the Piscine chicane at 120 km/h, feeding into the short straight before La Rascasse. The section was tightened in 2003 with new kerbs, slowing cars further.",
+    facts:[
+      {icon:"🔧",tag:"fact",title:"Tightened in 2003",text:"Tighter kerbs added in <strong>2003</strong> reduced speeds here further. The extra harbour space also allowed construction of new grandstands and a larger pit lane."},
+    ]},
+  { id:17, label:"T17", name:"",
+    ...rl(107), sector:3, speed:80, gear:2, dist:"2.97",
+    desc:"An unnamed corner between the Piscine exit and La Rascasse. A short right-hander transitioning from the Swimming Pool complex into the Rascasse hairpin sequence.",
+    facts:[
+      {icon:"❓",tag:"fact",title:"The nameless corner",text:"T17 is the only corner at Monaco without an official name. All other 18 corners have historic names — this one simply doesn't appear in any official naming documentation."},
+    ]},
+  { id:18, label:"T18", name:"La Rascasse",
+    ...rl(113), sector:3, speed:63, gear:2, dist:"3.04",
+    desc:"Slow 135-degree left hairpin at 63 km/h. Requires full steering lock. Named after the famous bar-restaurant on the outside. The harbour wall is centimetres from the front wing on exit.",
+    facts:[
+      {icon:"😈",tag:"drama",title:"2006 — The Schumacher scandal",text:"<strong>Michael Schumacher</strong> parked his Ferrari here deliberately in 2006 qualifying to prevent Alonso and Webber from improving. Stripped of pole and sent to the back. Still considered one of the most cynical acts in F1 history."},
+      {icon:"🍷",tag:"fact",title:"La Rascasse bar",text:"The bar on the outside has operated since <strong>1993</strong>. On race day patrons lean over the railing and watch cars pass at arm's length. A rascasse is a Mediterranean scorpionfish — classic bouillabaisse ingredient."},
+      {icon:"🔁",tag:"fact",title:"Full steering lock — again",text:"Like T6, La Rascasse requires <strong>maximum steering lock</strong>. Monaco is the only F1 circuit where drivers need full lock twice per lap."},
+    ]},
+  { id:19, label:"T19", name:"Anthony Noghes",
+    ...rl(120), sector:3, speed:52, gear:2, dist:"3.16",
+    desc:"Final corner of the lap. Very slow right-hander at 52 km/h. The pit wall is directly on the right — any oversteer ends races immediately. A perfect exit dictates the entire run back to the S/F line.",
+    facts:[
+      {icon:"👴",tag:"fact",title:"Who was Antony Noghès?",text:"<strong>Antony Noghès</strong> founded the Automobile Club de Monaco and organised the first Monaco Grand Prix in <strong>1929</strong>, convincing the Grimaldi family to back the race. The pit lane starts just before T18 and ends just before T1."},
+      {icon:"📡",tag:"fact",title:"DRS detection zone",text:"The DRS detection point is <strong>80 metres after T16</strong> (Piscine exit), with activation 18 metres after T19. The S/F straight is the only DRS zone — Monaco is one of only three F1 circuits with a single DRS zone."},
+      {icon:"🏆",tag:"record",title:"All-time Monaco win records",text:"<strong>Ayrton Senna</strong> holds the record with 6 wins. <strong>Graham Hill</strong> and <strong>Michael Schumacher</strong> both have 5. In 2024, <strong>Charles Leclerc</strong> became the first Monégasque to win in a championship round since Louis Chiron in 1931."},
+      {icon:"💎",tag:"fact",title:"Prestige over prize money",text:"Monaco pays <strong>less prize money</strong> than almost any other race. Teams come because a Monaco win is worth more in prestige — many drivers rate it above a championship victory."},
+    ]},
+];
+
+const sectors = [
+  {id:0,name:"S/F"},{id:1,name:"Sainte Dévote"},{id:2,name:"Mirabeau"},{id:3,name:"Piscine"},
+];
+
+let activeIdx=0, map, markers=[];
+let gpsActive=false, gpsWatchId=null, gpsMarker=null, gpsAccCircle=null;
+let panelCollapsed=false;
+
+const strip = document.getElementById("sector-strip");
+sectors.forEach(s => {
+  const btn = document.createElement("button");
+  btn.className="sector-btn"; btn.textContent=s.name; btn.dataset.sector=s.id;
+  btn.onclick = () => { const i=stops.findIndex(c=>c.sector===s.id); if(i!==-1)jumpTo(i); };
+  strip.appendChild(btn);
+});
+
+function initMap() {
+  map = L.map("map", {center:[43.7368,7.4262], zoom:15, zoomControl:true, attributionControl:false});
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {maxZoom:19}).addTo(map);
+  L.polyline(racingLine, {color:"#e8001d", weight:5, opacity:0.85, lineJoin:"round", lineCap:"round", smoothFactor:1}).addTo(map);
+  L.polyline(racingLine, {color:"#fff", weight:1, opacity:0.12, dashArray:"3 16", smoothFactor:1}).addTo(map);
+
+  stops.forEach((c, i) => {
+    let html, size;
+    if(c.isSF) {
+      html = `<div class="sf-pin" id="cm-${i}" style="width:28px;height:18px;">S/F</div>`;
+      size = [28,18];
+    } else {
+      html = `<div class="corner-marker" id="cm-${i}" style="width:20px;height:20px;">${c.label}</div>`;
+      size = [20,20];
+    }
+    const icon = L.divIcon({className:"", html, iconSize:size, iconAnchor:[size[0]/2,size[1]/2]});
+    markers.push(L.marker([c.lat,c.lng], {icon, zIndexOffset:c.isSF?500:0}).addTo(map).on("click", ()=>jumpTo(i)));
+  });
+
+  jumpTo(0);
+}
+
+function jumpTo(idx) {
+  activeIdx = idx;
+  const c = stops[idx];
+  markers.forEach((_, i) => {
+    const el = document.getElementById(`cm-${i}`);
+    if(!el) return;
+    if(stops[i].isSF) {
+      el.className = "sf-pin" + (i===idx ? " active" : "");
+    } else {
+      el.className = "corner-marker" + (i===idx ? " active" : "");
+    }
+  });
+  if(!gpsActive) map.setView([c.lat, c.lng], 17, {animate:true, duration:0.5});
+  const badge = document.getElementById("corner-badge");
+  badge.textContent = c.label;
+  badge.style.background = c.isSF ? "#c8960c" : "#e8001d";
+  document.getElementById("corner-name").textContent = c.name;
+  document.getElementById("corner-meta").textContent = c.isSF
+    ? "Boulevard Albert 1er · Pit straight"
+    : `Sector ${c.sector} — ${sectors.find(s=>s.id===c.sector)?.name||""} · ${c.dist} km`;
+  document.getElementById("corner-desc").textContent = c.desc;
+  document.getElementById("s-speed").textContent = c.speed ?? "—";
+  document.getElementById("s-gear").textContent = c.gear ?? "—";
+  document.getElementById("s-dist").textContent = c.dist;
+  document.getElementById("corner-counter").textContent = `${idx + 1} / ${stops.length}`;
+  document.querySelectorAll(".sector-btn").forEach(b => b.classList.toggle("active", parseInt(b.dataset.sector)===c.sector));
+  document.getElementById("progress-fill").style.width = ((idx+1)/stops.length*100).toFixed(1) + "%";
+  const fs = document.getElementById("facts-section");
+  fs.innerHTML = c.facts?.length
+    ? `<div class="facts-label">${c.isSF ? "Circuit facts" : "History & facts"}</div>` + c.facts.map(f=>
+        `<div class="fact-item"><span class="fact-icon">${f.icon}</span><div class="fact-text"><span class="fact-tag ${f.tag}">${f.tag.toUpperCase()}</span> <strong>${f.title}</strong><br>${f.text}</div></div>`
+      ).join("")
+    : "";
+  document.getElementById("prev-btn").disabled = idx===0;
+  document.getElementById("next-btn").disabled = idx===stops.length-1;
+  document.getElementById("panel-scroll").scrollTop = 0;
+  if(panelCollapsed) togglePanel();
+}
+
+function navigate(dir) { const n=activeIdx+dir; if(n>=0&&n<stops.length) jumpTo(n); }
+window.navigate = navigate;
+
+function togglePanel() {
+  panelCollapsed = !panelCollapsed;
+  document.getElementById("panel").classList.toggle("collapsed", panelCollapsed);
+  document.getElementById("panel-toggle-btn").textContent = panelCollapsed ? "▴" : "▾";
+}
+window.togglePanel = togglePanel;
+
+function toggleGPS() { gpsActive ? stopGPS() : startGPS(); }
+window.toggleGPS = toggleGPS;
+function startGPS() {
+  if(!navigator.geolocation) { alert("Geolocation not supported."); return; }
+  document.getElementById("gps-btn").className = "topbar-btn searching";
+  document.getElementById("gps-label").textContent = "Searching…";
+  gpsWatchId = navigator.geolocation.watchPosition(onGPSUpdate, onGPSError,
+    {enableHighAccuracy:true, maximumAge:1500, timeout:15000});
+  gpsActive = true;
+  requestWakeLock();
+}
+function stopGPS() {
+  if(gpsWatchId!==null) navigator.geolocation.clearWatch(gpsWatchId);
+  gpsWatchId=null; gpsActive=false;
+  if(gpsMarker) { map.removeLayer(gpsMarker); gpsMarker=null; }
+  if(gpsAccCircle) { map.removeLayer(gpsAccCircle); gpsAccCircle=null; }
+  document.getElementById("gps-btn").className = "topbar-btn";
+  document.getElementById("gps-label").textContent = "GPS";
+  releaseWakeLock();
+}
+function onGPSUpdate(pos) {
+  const {latitude:lat, longitude:lng, accuracy:acc} = pos.coords;
+  document.getElementById("gps-btn").className = "topbar-btn active";
+  document.getElementById("gps-label").textContent = `GPS · ${Math.round(acc)}m`;
+  if(!gpsMarker) {
+    gpsMarker = L.marker([lat,lng], {
+      icon: L.divIcon({className:"", html:`<div style="width:14px;height:14px;border-radius:50%;background:#00cc77;border:2.5px solid #fff;box-shadow:0 0 0 3px rgba(0,204,119,0.25)"></div>`, iconSize:[14,14], iconAnchor:[7,7]}),
+      zIndexOffset:3000
+    }).addTo(map);
+  } else { gpsMarker.setLatLng([lat,lng]); }
+  if(!gpsAccCircle) {
+    gpsAccCircle = L.circle([lat,lng], {radius:acc, color:"#00cc77", fillColor:"#00cc77", fillOpacity:0.07, weight:1, opacity:0.25}).addTo(map);
+  } else { gpsAccCircle.setLatLng([lat,lng]); gpsAccCircle.setRadius(acc); }
+  map.setView([lat,lng], Math.max(map.getZoom(),17), {animate:true, duration:0.8});
+  const next = activeIdx+1;
+  if(next < stops.length && haversine(lat,lng,stops[next].lat,stops[next].lng) < 25) jumpTo(next);
+  stops.forEach((_, i) => {
+    const el = document.getElementById(`cm-${i}`);
+    if(!el) return;
+    if(i===activeIdx) return;
+    const isNear = haversine(lat,lng,stops[i].lat,stops[i].lng) < 40;
+    if(!stops[i].isSF) el.className = "corner-marker" + (isNear ? " nearby" : "");
+  });
+}
+function onGPSError() {
+  document.getElementById("gps-btn").className = "topbar-btn";
+  document.getElementById("gps-label").textContent = "GPS";
+}
+function haversine(lat1,lng1,lat2,lng2) {
+  const R=6371000, dLat=(lat2-lat1)*Math.PI/180, dLng=(lng2-lng1)*Math.PI/180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+function openAbout() { document.getElementById("about-overlay").classList.add("open"); }
+function closeAbout() { document.getElementById("about-overlay").classList.remove("open"); }
+function closeAboutIfBg(e) { if(e.target===document.getElementById("about-overlay")) closeAbout(); }
+window.openAbout=openAbout; window.closeAbout=closeAbout; window.closeAboutIfBg=closeAboutIfBg;
+
+function showHelp() {
+  document.getElementById("welcome-overlay").classList.remove("hidden");
+}
+window.showHelp = showHelp;
+
+function dismissWelcome() {
+  document.getElementById("welcome-overlay").classList.add("hidden");
+  try { localStorage.setItem("monaco_walk_welcomed", "1"); } catch(e) {}
+}
+function startWalk() {
+  dismissWelcome();
+  if(navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(pos => {
+      const {latitude:lat, longitude:lng} = pos.coords;
+      if(haversine(lat,lng,43.7368,7.4262) < 5000) {
+        let nearest=0, minD=Infinity;
+        stops.forEach((c,i) => { const d=haversine(lat,lng,c.lat,c.lng); if(d<minD){minD=d;nearest=i;} });
+        jumpTo(nearest);
+        map.setView([lat,lng], 17, {animate:true});
+      } else {
+        map.setView(SF_POS, 16, {animate:true});
+        jumpTo(0);
+      }
+    }, () => { map.setView(SF_POS, 16, {animate:true}); jumpTo(0); }, {timeout:4000, maximumAge:10000});
+  } else { map.setView(SF_POS, 16, {animate:true}); jumpTo(0); }
+}
+window.dismissWelcome=dismissWelcome; window.startWalk=startWalk;
+
+document.addEventListener("keydown", e => {
+  if(e.key==="Escape") { closeAbout(); dismissWelcome(); }
+  if(e.key==="ArrowRight"||e.key==="ArrowDown") navigate(1);
+  if(e.key==="ArrowLeft"||e.key==="ArrowUp") navigate(-1);
+});
+
+
+// Hide fullscreen button if PWA standalone or iOS or API not supported
+(function() {
+  const btn = document.getElementById('fullscreen-btn');
+  if(!btn) return;
+  const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const noAPI = !document.documentElement.requestFullscreen && !document.documentElement.webkitRequestFullscreen;
+  if(isStandalone || isIOS || noAPI) btn.style.display = 'none';
+})();
+
+// ── SERVICE WORKER ────────────────────────────────────────────
+if('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
+
+// ── FULLSCREEN ────────────────────────────────────────────────
+function isFullscreen() {
+  return !!(document.fullscreenElement || document.webkitFullscreenElement);
+}
+function toggleFullscreen() {
+  const el = document.documentElement;
+  const btn = document.getElementById('fullscreen-btn');
+  if(!isFullscreen()) {
+    const req = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen;
+    if(req) req.call(el).catch(() => {});
+  } else {
+    const ex = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen;
+    if(ex) ex.call(document).catch(() => {});
+  }
+}
+window.toggleFullscreen = toggleFullscreen;
+['fullscreenchange','webkitfullscreenchange','mozfullscreenchange'].forEach(evt => {
+  document.addEventListener(evt, () => {
+    const btn = document.getElementById('fullscreen-btn');
+    if(btn) {
+      if(isFullscreen()) { btn.classList.add('active'); btn.textContent = '✕'; }
+      else { btn.classList.remove('active'); btn.textContent = '⛶'; }
+    }
+  });
+});
+
+// ── WAKE LOCK (auto on GPS, auto off when GPS stops) ──────────
+let wakeLock = null;
+async function requestWakeLock() {
+  if('wakeLock' in navigator) {
+    try {
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', () => { wakeLock = null; });
+    } catch(e) {}
+  }
+}
+function releaseWakeLock() {
+  if(wakeLock) { wakeLock.release(); wakeLock = null; }
+}
+// Re-acquire wake lock if page becomes visible again (e.g. after screen on)
+document.addEventListener('visibilitychange', () => {
+  if(document.visibilityState === 'visible' && gpsActive) requestWakeLock();
+});
+
+// Skip welcome if already seen
+try {
+  if(localStorage.getItem("monaco_walk_welcomed")) {
+    document.getElementById("welcome-overlay").classList.add("hidden");
+  }
+} catch(e) {}
+initMap();
+</script>
+</body>
+</html>
