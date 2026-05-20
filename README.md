@@ -14,16 +14,18 @@ A progressive web app (PWA) that guides you around the Monaco Grand Prix street 
 - Description of the racing line and driving technique
 - Historical facts, famous crashes, and circuit lore
 
-Enable GPS and the app follows you automatically — it advances to the next corner when you're within 25 metres of it.
+Enable GPS and the app follows you automatically — it advances to the next corner as you approach.
 
 ## Features
 
-- **Live GPS tracking** — auto-advances as you walk the circuit
+- **Live GPS tracking** — auto-advances to the next corner when you're within 25 metres
+- **Nearby highlight** — corner markers turn orange when you're within 40 metres, giving you a heads-up before the panel switches
+- **Auto-advance toggle** — turn automatic corner switching on/off via the Auto button
 - **All 19 corners** — from Sainte Dévote to Anthony Noghes, plus the S/F line
-- **Offline support** — works without signal after first load (map tiles cached)
+- **Offline support** — works without signal after first load (map tiles cached); useful as a general Monaco GPS map when roaming doesn't work
 - **PWA** — install to home screen via Safari on iOS or Chrome/Brave on Android
 - **Screen wake lock** — screen stays on automatically when GPS is active
-- **Fullscreen mode** — available on Android and desktop
+- **Fullscreen mode** — available on Android and desktop (hidden on iOS where the API is not supported)
 - **No tracking** — GPS stays on your device, no data collected, no cookies
 
 ## Installing as an app
@@ -37,7 +39,7 @@ Uses the browser's built-in Geolocation API. Measures the distance to the next c
 
 ## Tunnel (T9)
 
-There is a pedestrian path along the full 172m of the tunnel on the right-hand side. You can walk the entire tunnel section alongside the racing line.
+There is a pedestrian path along the full 172m of the tunnel on the **left-hand side** (walking in racing direction). You can walk the entire tunnel section alongside the racing line.
 
 ## Files
 
@@ -47,16 +49,20 @@ There is a pedestrian path along the full 172m of the tunnel on the right-hand s
 | `manifest.json` | PWA manifest (name, icons, display mode) |
 | `sw.js` | Service worker — caches app shell and OSM map tiles |
 | `icon.svg` | Monaco flag app icon (red/white, F1 text) |
+| `.github/workflows/deploy.yml` | GitHub Actions CI — auto-deploys to Cloudflare Pages on push to main |
 
 ## Deployment
 
-Deployed as a static site on Cloudflare Pages. No build step — just deploy the four files as-is.
+Deployments are handled automatically via GitHub Actions on every push to `main`. Two secrets are required in the repo settings:
+
+- `CLOUDFLARE_API_TOKEN` — create at Cloudflare dashboard → My Profile → API Tokens
+- `CLOUDFLARE_ACCOUNT_ID` — found on the Cloudflare Workers & Pages overview page
+
+To deploy manually:
 
 ```bash
 npx wrangler pages deploy . --project-name monaco-f1-walk
 ```
-
-Or drag and drop the files in the Cloudflare Pages dashboard.
 
 ## Data & attribution
 
