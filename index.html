@@ -44,6 +44,7 @@ html, body { height: 100%; font-family: 'Helvetica Neue', Arial, sans-serif; bac
 @media (display-mode: standalone) { #fullscreen-btn { display: none; } }
 #wake-indicator { width: 7px; height: 7px; border-radius: 50%; background: #555; flex-shrink: 0; transition: background 0.3s; }
 #wake-indicator.active { background: #ffd700; }
+#auto-btn.off { color: #555; border-color: #222; }
 #gps-btn.active { border-color: #00cc77; color: #00cc77; }
 #gps-btn.searching { border-color: #ff6b00; color: #ff6b00; }
 #gps-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
@@ -96,6 +97,10 @@ html, body { height: 100%; font-family: 'Helvetica Neue', Arial, sans-serif; bac
 #nav-center { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; }
 #corner-counter { font-size: 13px; font-weight: 600; color: #ccc; }
 #corner-counter-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: #3a3a3a; }
+#help-overlay { display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.85); align-items: flex-end; justify-content: center; }
+#help-overlay.open { display: flex; }
+#help-sheet { background: #111; border-top: 1px solid #222; border-radius: 12px 12px 0 0; width: 100%; max-width: 560px; padding: 24px 20px 32px; max-height: 90vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+@media (min-width: 768px) { #help-overlay { align-items: center; } #help-sheet { border-radius: 8px; max-height: 80vh; } }
 #about-overlay { display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.85); align-items: flex-end; justify-content: center; }
 #about-overlay.open { display: flex; }
 #about-sheet { background: #111; border-top: 1px solid #222; border-radius: 12px 12px 0 0; width: 100%; max-width: 560px; padding: 24px 20px 32px; max-height: 90vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
@@ -116,10 +121,21 @@ html, body { height: 100%; font-family: 'Helvetica Neue', Arial, sans-serif; bac
 .coffee-meta span { font-size: 11px; color: #886622; font-weight: 400; }
 .about-close { width: 100%; padding: 10px; margin-top: 10px; background: #1a1a1a; border: 1px solid #2a2a2a; color: #888; font-size: 13px; border-radius: 4px; cursor: pointer; }
 .about-close:hover { background: #222; }
-#welcome-overlay { position: fixed; inset: 0; z-index: 10000; background: rgba(0,0,0,0.92); display: flex; align-items: flex-end; justify-content: center; }
+
+.help-group { margin-bottom: 6px; border: 1px solid #1e1e1e; border-radius: 4px; overflow: hidden; }
+.help-toggle { width: 100%; text-align: left; background: #141414; border: none; color: #aaa; font-size: 12px; font-weight: 600; padding: 10px 12px; cursor: pointer; letter-spacing: 0.02em; transition: background 0.15s; }
+.help-toggle:hover { background: #1a1a1a; color: #ccc; }
+.help-toggle.open { color: #e8001d; }
+.help-body { display: none; padding: 10px 12px 12px; border-top: 1px solid #1e1e1e; }
+.help-body.open { display: block; }
+.help-body p { font-size: 12px; color: #888; line-height: 1.6; margin-bottom: 6px; }
+.help-body p:last-child { margin-bottom: 0; }
+.help-body strong { color: #ccc; }
+
+#welcome-overlay { position: fixed; inset: 0; z-index: 10000; background: rgba(0,0,0,0.92); display: flex; align-items: center; justify-content: center; padding: 16px; }
 #welcome-overlay.hidden { display: none; }
-#welcome-sheet { background: #111; border-top: 1px solid #222; border-radius: 12px 12px 0 0; width: 100%; max-width: 560px; padding: 26px 20px 34px; max-height: 92vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-@media (min-width: 768px) { #welcome-overlay { align-items: center; } #welcome-sheet { border-radius: 10px; max-height: 82vh; } }
+#welcome-sheet { background: #111; border: 1px solid #222; border-radius: 12px; width: 100%; max-width: 560px; padding: 26px 20px 34px; max-height: 90vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+
 .welcome-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
 .welcome-f1 { background: #e8001d; color: #fff; font-size: 13px; font-weight: 800; padding: 4px 9px; border-radius: 3px; }
 .welcome-title { font-size: 18px; font-weight: 700; color: #fff; }
@@ -143,9 +159,10 @@ html, body { height: 100%; font-family: 'Helvetica Neue', Arial, sans-serif; bac
       <span class="f1-badge">F1</span>
       <div id="topbar-right">
         <button class="topbar-btn" id="gps-btn" onclick="toggleGPS()"><span id="gps-dot"></span><span id="gps-label">GPS</span></button>
+        <button class="topbar-btn" id="auto-btn" onclick="toggleAutoAdvance()" title="Auto-advance corners">Auto</button>
         <button class="topbar-btn" id="fullscreen-btn" onclick="toggleFullscreen()" title="Fullscreen">⛶</button>
-        <button class="topbar-btn" onclick="openAbout()">About</button>
         <button class="topbar-btn" onclick="showHelp()">Help</button>
+        <button class="topbar-btn" onclick="openAbout()">About</button>
       </div>
     </div>
     <div id="panel">
@@ -181,27 +198,21 @@ html, body { height: 100%; font-family: 'Helvetica Neue', Arial, sans-serif; bac
 
   <div id="about-overlay" onclick="closeAboutIfBg(event)">
     <div id="about-sheet">
-      <h2>Monaco GP Circuit Walk</h2>
-      <p class="about-sub">Free fan-made guide — S/F line + all 19 corners of the Circuit de Monaco</p>
+      <h2>About</h2>
+      <p class="about-sub">Why this exists</p>
+
       <div class="about-section">
-        <h3>What this is</h3>
-        <p>A turn-by-turn walking guide to all 19 corners of the Monaco GP circuit, with GPS coordinates traced from the actual racing line, historical facts, and live GPS tracking that follows you as you walk.</p>
-        <div class="data-pills"><span class="data-pill">✓ No data collected</span><span class="data-pill">✓ GPS stays on-device</span><span class="data-pill">✓ Works offline after first load</span></div>
+        <p>I've followed F1 since childhood and became an active fan in late 2020. When a trip to Nice was planned, visiting Monaco was a given — I wanted to see the track with my own eyes.</p>
+        <p>The day before going I had an idea: build an interactive walking guide so the visit would be more than just walking around. I built it overnight and beta tested it on the circuit the next day.</p>
+        <p>It turned out more useful than expected — the historical facts and racing context made each corner feel alive, the offline map worked perfectly without roaming, and it gave a real sense of what F1 drivers actually experience through those streets.</p>
       </div>
+
       <hr class="about-divider">
-      <div class="about-section">
-        <h3>GPS tracking</h3>
-        <p>Uses your browser's built-in geolocation API — nothing external. Measures distance to the next corner every few seconds and auto-advances when you're within 25 metres. Allow location access when prompted. Battery/CPU impact is negligible — same as having Maps open.</p>
-      </div>
-      <hr class="about-divider">
-      <div class="about-section">
-        <h3>Data & attribution</h3>
-        <p>Racing line GPS from <a href="https://github.com/bacinger/f1-circuits" target="_blank" rel="noopener" style="color:#5bc4ff;text-decoration:none;font-weight:600;">bacinger/f1-circuits</a> on GitHub (MIT licence, OpenStreetMap source). Historical facts are original writing. Unofficial fan project — not affiliated with Formula One Licensing B.V. or the Automobile Club de Monaco.</p>
-      </div>
-      <hr class="about-divider">
+
       <div class="about-section">
         <h3>Made by Maris</h3>
-        <p>Data engineer based in Estonia. If you enjoyed the walk and feel like saying thanks:</p>
+        <p>Data engineer based in Estonia. Writing about tech at <a href="https://drumandbytes.com" target="_blank" rel="noopener" style="color:#5bc4ff;text-decoration:none;">drumandbytes.com</a>.</p>
+        <p>Found a bug or want to suggest something? <a href="https://github.com/drumandbytes/monaco-f1-walk/issues" target="_blank" rel="noopener" style="color:#5bc4ff;text-decoration:none;">Open an issue on GitHub.</a></p>
         <a class="coffee-btn" href="https://buymeacoffee.com/justmaris" target="_blank" rel="noopener">
           <span class="coffee-icon">☕</span>
           <div class="coffee-meta">Buy me a coffee<span>buymeacoffee.com/justmaris</span></div>
@@ -211,20 +222,91 @@ html, body { height: 100%; font-family: 'Helvetica Neue', Arial, sans-serif; bac
     </div>
   </div>
 
+  <!-- Help -->
+  <div id="help-overlay" onclick="closeHelpIfBg(event)">
+    <div id="help-sheet">
+      <h2>Help</h2>
+      <p class="about-sub">Fan-made walking guide — S/F line + all 19 corners of the Circuit de Monaco</p>
+
+      <div class="help-group">
+        <button class="help-toggle" onclick="toggleHelp(this)">▸ Navigation</button>
+        <div class="help-body">
+          <p><strong>Prev / Next</strong> — walk corners in racing order.</p>
+          <p><strong>Tap any marker</strong> on the map to jump directly to that corner.</p>
+          <p><strong>Sector tabs</strong> — skip between the four circuit sections.</p>
+          <p><strong>▾ button</strong> — collapse the info panel to see more map. Reopens automatically at the next corner.</p>
+        </div>
+      </div>
+
+      <div class="help-group">
+        <button class="help-toggle" onclick="toggleHelp(this)">▸ GPS & auto-advance</button>
+        <div class="help-body">
+          <p>Tap <strong>GPS</strong> to enable live tracking. The app measures your distance to the next corner every few seconds using your device's built-in location — nothing is sent externally.</p>
+          <p>When you're within <strong>40 metres</strong> of a corner, its marker turns orange. When you're within <strong>25 metres</strong> of the next corner, the panel auto-advances.</p>
+          <p>Use the <strong>Auto</strong> button to turn auto-advance on or off — useful if you want to explore freely without the panel switching.</p>
+          <p>The screen stays on automatically while GPS is active.</p>
+          <p>Battery/CPU impact is negligible — same as having Maps open.</p>
+        </div>
+      </div>
+
+      <div class="help-group">
+        <button class="help-toggle" onclick="toggleHelp(this)">▸ Offline & roaming</button>
+        <div class="help-body">
+          <p>After first load, the app and map tiles work fully offline. This makes it useful as a <strong>general Monaco GPS map</strong> even when roaming doesn't work — Monaco is outside the EU, so data roaming may be expensive or unavailable.</p>
+          <p>GPS itself doesn't require internet — your device's location hardware works independently of mobile data.</p>
+          <p>Map tiles you've already viewed are cached. Pan and zoom around the circuit while online to pre-cache the areas you'll walk.</p>
+        </div>
+      </div>
+
+      <div class="help-group">
+        <button class="help-toggle" onclick="toggleHelp(this)">▸ Tunnel (T9)</button>
+        <div class="help-body">
+          <p>There is a <strong>pedestrian path along the full 172 metres</strong> of the tunnel on the left-hand side (walking in racing direction). You can walk the entire tunnel section alongside the racing line.</p>
+        </div>
+      </div>
+
+      <div class="help-group">
+        <button class="help-toggle" onclick="toggleHelp(this)">▸ Install as an app (PWA)</button>
+        <div class="help-body">
+          <p><strong>iOS:</strong> Open in Safari → Share → "Add to Home Screen". Opens as a standalone app with no browser chrome.</p>
+          <p><strong>Android:</strong> Open in Chrome or Brave → install prompt or browser menu → Add to Home Screen.</p>
+          <p>Once installed, the app works fully offline and the screen stays on while GPS is active.</p>
+          <p><strong>⛶ Fullscreen</strong> button available on Android and desktop — including when installed as a PWA. Hidden on iOS where the Fullscreen API is not supported.</p>
+        </div>
+      </div>
+
+      <div class="help-group">
+        <button class="help-toggle" onclick="toggleHelp(this)">▸ Data & attribution</button>
+        <div class="help-body">
+          <p>Racing line GPS from <a href="https://github.com/bacinger/f1-circuits" target="_blank" rel="noopener" style="color:#5bc4ff;text-decoration:none;font-weight:600;">bacinger/f1-circuits</a> (MIT licence, OpenStreetMap source). Historical facts are original writing.</p>
+          <p>Unofficial fan project — not affiliated with Formula One Licensing B.V. or the Automobile Club de Monaco.</p>
+          <div class="data-pills" style="margin-top:8px"><span class="data-pill">✓ No data collected</span><span class="data-pill">✓ GPS stays on-device</span><span class="data-pill">✓ No cookies</span></div>
+        </div>
+      </div>
+
+      <div class="help-group">
+        <button class="help-toggle" onclick="toggleHelp(this)">▸ Issues & feedback</button>
+        <div class="help-body">
+          <p>Found a corner that's off? A fact that's wrong? <a href="https://github.com/drumandbytes/monaco-f1-walk/issues" target="_blank" rel="noopener" style="color:#5bc4ff;text-decoration:none;font-weight:600;">Open an issue on GitHub</a> — corrections welcome.</p>
+        </div>
+      </div>
+
+      <button class="about-close" onclick="closeHelp()">Close</button>
+    </div>
+  </div>
+
   <div id="welcome-overlay">
     <div id="welcome-sheet">
       <div class="welcome-logo"><span class="welcome-f1">F1</span><span class="welcome-title">Monaco GP Circuit Walk</span></div>
       <p class="welcome-sub">Walk all 19 corners of the Circuit de Monaco with historical facts and live GPS.</p>
       <hr class="welcome-divider">
       <div class="welcome-steps">
-        <div class="welcome-step"><div class="step-num">1</div><div class="step-text"><strong>Start at the S/F line</strong> on Boulevard Albert 1er — the red S/F marker on the map. That's where the race starts and ends each lap.</div></div>
-        <div class="welcome-step"><div class="step-num">2</div><div class="step-text"><strong>Use Prev / Next</strong> to walk corners in racing order, or tap any corner marker on the map to jump directly to it. Sector tabs skip between circuit sections.</div></div>
-        <div class="welcome-step"><div class="step-num">3</div><div class="step-text"><strong>Enable GPS</strong> (top right) and the app follows you automatically — it advances to the next corner when you're within 25 metres. Allow location access when prompted.</div></div>
-        <div class="welcome-step"><div class="step-num">4</div><div class="step-text"><strong>Collapse the panel</strong> with the <strong>▾</strong> button (top right of the info panel) to see more map. Tap it again or advance to the next corner to reopen.</div></div>
-        <div class="welcome-step"><div class="step-num">5</div><div class="step-text"><strong>Tunnel (T9):</strong> a pedestrian path runs the full 172m alongside the track. You can walk the entire tunnel section.</div></div>
-        <div class="welcome-step"><div class="step-num">6</div><div class="step-text"><strong>Install as an app</strong> — on iOS use <strong>Safari</strong> → Share → "Add to Home Screen" (Brave on iOS doesn't support this yet). On Android use Chrome or Brave → install prompt or browser menu. Works offline after first load.</div></div>
-        <div class="welcome-step"><div class="step-num">7</div><div class="step-text"><strong>Screen stays on</strong> automatically when GPS is active. Use the <strong>⛶</strong> button in the top bar to go fullscreen (Android/desktop).</div></div>
+        <div class="welcome-step"><div class="step-num">1</div><div class="step-text"><strong>Start at the S/F marker</strong> on Boulevard Albert 1er — that's where the race starts and ends each lap.</div></div>
+        <div class="welcome-step"><div class="step-num">2</div><div class="step-text"><strong>Enable GPS</strong> and the app follows you — auto-advancing to the next corner as you approach. Orange markers mean you're close. Use <strong>Auto</strong> to toggle this.</div></div>
+        <div class="welcome-step"><div class="step-num">3</div><div class="step-text"><strong>Works offline</strong> — once loaded, the map and app work without internet. Useful as a general Monaco GPS map if roaming doesn't work.</div></div>
+        <div class="welcome-step"><div class="step-num">4</div><div class="step-text"><strong>Tap Help</strong> anytime for full details on all features.</div></div>
       </div>
+      <p style="font-size:12px;color:#bba040;margin-top:14px;padding:11px 13px;border:1px solid #4a3a00;border-radius:5px;background:#1a1400;line-height:1.5;">⬇ <strong style="color:#ffd700;">Install as an app</strong> — Safari → Share → "Add to Home Screen" on iOS, or Chrome/Brave on Android. Works offline after first load.</p>
       <hr class="welcome-divider">
       <p style="font-size:11px;color:#3a3a3a;">No data collected. GPS stays on your device. Fan project — not affiliated with F1 or ACM.</p>
       <button class="welcome-start" onclick="startWalk()">Start the walk →</button>
@@ -295,9 +377,9 @@ const stops = [
     facts:[
       {icon:"🏁",tag:"fact",title:"3.337 km, 19 corners, 78 laps",text:"The Circuit de Monaco is <strong>3.337 km</strong> long — the shortest circuit on the F1 calendar. Drivers complete 78 laps, covering just 260 km. It's the only race exempt from the FIA's mandated 305 km minimum race distance."},
       {icon:"📅",tag:"fact",title:"First race: 1929",text:"The Monaco Grand Prix was first held on <strong>14 April 1929</strong>, won by William Grover-Williams in a Bugatti. It became part of the Formula One World Championship at its very first season in 1950."},
-      {icon:"🏆",tag:"record",title:"Most wins: Ayrton Senna",text:"<strong>Ayrton Senna</strong> holds the record with 6 Monaco victories (1984, 1986, 1987, 1989, 1990, 1992). Graham Hill and Michael Schumacher both have 5. In 2024, Charles Leclerc became the first Monégasque to win in a championship round since 1931."},
+      {icon:"🏆",tag:"record",title:"Most wins: Ayrton Senna",text:"<strong>Ayrton Senna</strong> holds the record with 6 Monaco victories (1984, 1986, 1987, 1989, 1990, 1992). Graham Hill and Michael Schumacher both have 5. In 2024, Charles Leclerc became the first Monégasque to win in a championship round since 1931. In 2025, Lando Norris won for McLaren — their first Monaco win since 2008."},
       {icon:"🔧",tag:"fact",title:"250 workers, 6 weeks to build",text:"Since the circuit uses public roads, it takes <strong>250 workers 6 weeks</strong> to erect barriers, grandstands and infrastructure, and 3 more weeks to dismantle everything after the race."},
-      {icon:"⏱",tag:"record",title:"Lap record: 1:12.909",text:"Set by <strong>Lewis Hamilton</strong> in a Mercedes W12 during the 2021 Monaco Grand Prix. Just 34% of the lap is spent at full throttle — the lowest of any circuit on the calendar."},
+      {icon:"⏱",tag:"record",title:"Lap records",text:"Race lap record: <strong>1:12.909</strong> by Lewis Hamilton (Mercedes, 2021). Qualifying lap record: <strong>1:09.954</strong> by Lando Norris (McLaren, 2025). Just 34% of the lap is spent at full throttle — the lowest of any circuit on the calendar."},
       {icon:"🚗",tag:"fact",title:"Only pits not facing the track",text:"Monaco is the <strong>only F1 circuit where the pit lane doesn't face the racing surface</strong>. After a 2004 renovation, the garages were physically separated from the track by the pit lane itself."},
     ]},
   { id:1, label:"T1", name:"Sainte Dévote",
@@ -362,12 +444,12 @@ const stops = [
     ]},
   { id:9, label:"T9", name:"Tunnel",
     ...rl(52), sector:2, speed:290, gear:8, dist:"1.97",
-    desc:"172-metre tunnel — flat out at 285–290 km/h in 8th gear, slightly downhill. Entry is a left-hander at ~105 km/h where drivers commit entirely on muscle memory. Concrete walls amplify engine noise to extraordinary levels. A pedestrian path runs the full length on the right side.",
+    desc:"172-metre tunnel — flat out at 285–290 km/h in 8th gear, slightly downhill. Entry is a left-hander at ~105 km/h where drivers commit entirely on muscle memory. Concrete walls amplify engine noise to extraordinary levels. A pedestrian path runs the full length on the left side (walking in racing direction).",
     facts:[
       {icon:"🔊",tag:"fact",title:"Loudest place on the circuit",text:"In the V10 era, noise inside the tunnel exceeded <strong>130 dB</strong>. Even with today's hybrid V6 cars, standing on the pedestrian walkway as cars pass is felt physically in the chest."},
       {icon:"💥",tag:"crash",title:"1994 — Wendlinger's accident",text:"<strong>Karl Wendlinger</strong> crashed at the chicane after the tunnel exit during 1994 practice, hitting the barrier at speed and falling into a coma. He survived but the incident drove major safety revisions at Monaco."},
       {icon:"🚫",tag:"fact",title:"DRS banned in the tunnel since 2011",text:"Drivers lobbied the FIA to ban DRS in the tunnel in <strong>2011</strong> due to the extreme instability risk at 290 km/h next to concrete walls. The ban has remained ever since."},
-      {icon:"🚶",tag:"fact",title:"Walkable pedestrian path",text:"The path runs the full 172 metres on the right side. Outside race week you can walk the exact stretch that an F1 car covers at 290 km/h in under 2.2 seconds."},
+      {icon:"🚶",tag:"fact",title:"Walkable pedestrian path",text:"The path runs the full 172 metres on the left side (walking in the same direction as the cars). Outside race week you can walk the exact stretch that an F1 car covers at 290 km/h in under 2.2 seconds."},
     ]},
   { id:10, label:"T10", name:"Nouvelle Chicane — Left",
     ...rl(62), sector:2, speed:115, gear:3, dist:"2.31",
@@ -437,7 +519,7 @@ const stops = [
     facts:[
       {icon:"👴",tag:"fact",title:"Who was Antony Noghès?",text:"<strong>Antony Noghès</strong> founded the Automobile Club de Monaco and organised the first Monaco Grand Prix in <strong>1929</strong>, convincing the Grimaldi family to back the race. The pit lane starts just before T18 and ends just before T1."},
       {icon:"📡",tag:"fact",title:"DRS detection zone",text:"The DRS detection point is <strong>80 metres after T16</strong> (Piscine exit), with activation 18 metres after T19. The S/F straight is the only DRS zone — Monaco is one of only three F1 circuits with a single DRS zone."},
-      {icon:"🏆",tag:"record",title:"All-time Monaco win records",text:"<strong>Ayrton Senna</strong> holds the record with 6 wins. <strong>Graham Hill</strong> and <strong>Michael Schumacher</strong> both have 5. In 2024, <strong>Charles Leclerc</strong> became the first Monégasque to win in a championship round since Louis Chiron in 1931."},
+      {icon:"🏆",tag:"record",title:"All-time Monaco win records",text:"<strong>Ayrton Senna</strong> holds the record with 6 wins. <strong>Graham Hill</strong> and <strong>Michael Schumacher</strong> both have 5. In 2024, <strong>Charles Leclerc</strong> became the first Monégasque to win since Louis Chiron in 1931. In 2025, <strong>Lando Norris</strong> won for McLaren — their first Monaco victory since 2008."},
       {icon:"💎",tag:"fact",title:"Prestige over prize money",text:"Monaco pays <strong>less prize money</strong> than almost any other race. Teams come because a Monaco win is worth more in prestige — many drivers rate it above a championship victory."},
     ]},
 ];
@@ -447,6 +529,7 @@ const sectors = [
 ];
 
 let activeIdx=0, map, markers=[];
+let autoAdvance=true;
 let gpsActive=false, gpsWatchId=null, gpsMarker=null, gpsAccCircle=null;
 let panelCollapsed=false;
 
@@ -460,7 +543,7 @@ sectors.forEach(s => {
 
 function initMap() {
   map = L.map("map", {center:[43.7368,7.4262], zoom:15, zoomControl:true, attributionControl:false});
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {maxZoom:19}).addTo(map);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {maxZoom:20, maxNativeZoom:19}).addTo(map);
   L.polyline(racingLine, {color:"#e8001d", weight:5, opacity:0.85, lineJoin:"round", lineCap:"round", smoothFactor:1}).addTo(map);
   L.polyline(racingLine, {color:"#fff", weight:1, opacity:0.12, dashArray:"3 16", smoothFactor:1}).addTo(map);
 
@@ -564,7 +647,7 @@ function onGPSUpdate(pos) {
   } else { gpsAccCircle.setLatLng([lat,lng]); gpsAccCircle.setRadius(acc); }
   map.setView([lat,lng], Math.max(map.getZoom(),17), {animate:true, duration:0.8});
   const next = activeIdx+1;
-  if(next < stops.length && haversine(lat,lng,stops[next].lat,stops[next].lng) < 25) jumpTo(next);
+  if(autoAdvance && next < stops.length && haversine(lat,lng,stops[next].lat,stops[next].lng) < 25) jumpTo(next);
   stops.forEach((_, i) => {
     const el = document.getElementById(`cm-${i}`);
     if(!el) return;
@@ -583,13 +666,25 @@ function haversine(lat1,lng1,lat2,lng2) {
   return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
 
+function toggleHelp(btn) {
+  const body = btn.nextElementSibling;
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  btn.classList.toggle('open', !isOpen);
+  btn.textContent = (isOpen ? '▸ ' : '▾ ') + btn.textContent.slice(2);
+}
+window.toggleHelp = toggleHelp;
+
 function openAbout() { document.getElementById("about-overlay").classList.add("open"); }
 function closeAbout() { document.getElementById("about-overlay").classList.remove("open"); }
 function closeAboutIfBg(e) { if(e.target===document.getElementById("about-overlay")) closeAbout(); }
+function closeHelp() { document.getElementById("help-overlay").classList.remove("open"); }
+function closeHelpIfBg(e) { if(e.target===document.getElementById("help-overlay")) closeHelp(); }
 window.openAbout=openAbout; window.closeAbout=closeAbout; window.closeAboutIfBg=closeAboutIfBg;
+window.closeHelp=closeHelp; window.closeHelpIfBg=closeHelpIfBg;
 
 function showHelp() {
-  document.getElementById("welcome-overlay").classList.remove("hidden");
+  document.getElementById("help-overlay").classList.add("open");
 }
 window.showHelp = showHelp;
 
@@ -617,7 +712,7 @@ function startWalk() {
 window.dismissWelcome=dismissWelcome; window.startWalk=startWalk;
 
 document.addEventListener("keydown", e => {
-  if(e.key==="Escape") { closeAbout(); dismissWelcome(); }
+  if(e.key==="Escape") { closeAbout(); closeHelp(); dismissWelcome(); }
   if(e.key==="ArrowRight"||e.key==="ArrowDown") navigate(1);
   if(e.key==="ArrowLeft"||e.key==="ArrowUp") navigate(-1);
 });
@@ -627,10 +722,10 @@ document.addEventListener("keydown", e => {
 (function() {
   const btn = document.getElementById('fullscreen-btn');
   if(!btn) return;
-  const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
-  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const isStandalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
   const noAPI = !document.documentElement.requestFullscreen && !document.documentElement.webkitRequestFullscreen;
-  if(isStandalone || isIOS || noAPI) btn.style.display = 'none';
+  if(isIOS || isStandalone || noAPI) btn.style.display = 'none';
 })();
 
 // ── SERVICE WORKER ────────────────────────────────────────────
@@ -639,6 +734,14 @@ if('serviceWorker' in navigator) {
 }
 
 // ── FULLSCREEN ────────────────────────────────────────────────
+function toggleAutoAdvance() {
+  autoAdvance = !autoAdvance;
+  const btn = document.getElementById('auto-btn');
+  if(autoAdvance) { btn.classList.remove('off'); btn.title = 'Auto-advance: ON'; }
+  else { btn.classList.add('off'); btn.title = 'Auto-advance: OFF'; }
+}
+window.toggleAutoAdvance = toggleAutoAdvance;
+
 function isFullscreen() {
   return !!(document.fullscreenElement || document.webkitFullscreenElement);
 }
