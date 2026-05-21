@@ -5,6 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Monaco GP Circuit Walk</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Ccircle%20cx%3D%2216%22%20cy%3D%2216%22%20r%3D%2215%22%20fill%3D%22%23111%22%20stroke%3D%22%23e8001d%22%20stroke-width%3D%222%22/%3E%3Ccircle%20cx%3D%2216%22%20cy%3D%2216%22%20r%3D%226%22%20fill%3D%22none%22%20stroke%3D%22%23e8001d%22%20stroke-width%3D%222%22/%3E%3Cline%20x1%3D%2216%22%20y1%3D%221%22%20x2%3D%2216%22%20y2%3D%2210%22%20stroke%3D%22%23e8001d%22%20stroke-width%3D%222.5%22%20stroke-linecap%3D%22round%22/%3E%3Cline%20x1%3D%222.5%22%20y1%3D%2221%22%20x2%3D%2210.5%22%20y2%3D%2217%22%20stroke%3D%22%23e8001d%22%20stroke-width%3D%222.5%22%20stroke-linecap%3D%22round%22/%3E%3Cline%20x1%3D%2229.5%22%20y1%3D%2221%22%20x2%3D%2221.5%22%20y2%3D%2217%22%20stroke%3D%22%23e8001d%22%20stroke-width%3D%222.5%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E">
+<meta property="og:title" content="Monaco GP Circuit Walk">
+<meta property="og:description" content="Walk all 19 corners of the Circuit de Monaco with GPS tracking, historical facts, and offline maps. Free, no tracking.">
+<meta property="og:url" content="https://monaco-f1-walk.drumandbytes.dev">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://monaco-f1-walk.drumandbytes.dev/preview.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Monaco GP Circuit Walk">
+<meta name="twitter:description" content="Walk all 19 corners of the Circuit de Monaco with GPS tracking, historical facts, and offline maps.">
+<meta name="twitter:image" content="https://monaco-f1-walk.drumandbytes.dev/preview.png">
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#e8001d">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -366,7 +377,7 @@ const racingLine = [
 
 // Corner positions are read directly from racingLine by index — no coordinate duplication.
 // rl(n) returns the [lat, lng] stored at racingLine[n].
-function rl(n) { return { lat: racingLine[n][0], lng: racingLine[n][1] }; }
+function rl(n) { const p = racingLine[n] ?? racingLine[0]; return { lat: p[0], lng: p[1] }; }
 
 const SF_POS = [43.735700, 7.421216];
 
@@ -564,6 +575,9 @@ function initMap() {
 }
 
 function jumpTo(idx) {
+  // Clear nearby highlight on previous next corner
+  const prevNext = document.getElementById(`cm-${activeIdx + 1}`);
+  if(prevNext) prevNext.className = "corner-marker";
   activeIdx = idx;
   const c = stops[idx];
   markers.forEach((_, i) => {
@@ -646,19 +660,32 @@ function onGPSUpdate(pos) {
     gpsAccCircle = L.circle([lat,lng], {radius:acc, color:"#00cc77", fillColor:"#00cc77", fillOpacity:0.07, weight:1, opacity:0.25}).addTo(map);
   } else { gpsAccCircle.setLatLng([lat,lng]); gpsAccCircle.setRadius(acc); }
   map.setView([lat,lng], Math.max(map.getZoom(),17), {animate:true, duration:0.8});
-  const next = activeIdx+1;
-  if(autoAdvance && next < stops.length && haversine(lat,lng,stops[next].lat,stops[next].lng) < 25) jumpTo(next);
-  stops.forEach((_, i) => {
-    const el = document.getElementById(`cm-${i}`);
-    if(!el) return;
-    if(i===activeIdx) return;
-    const isNear = haversine(lat,lng,stops[i].lat,stops[i].lng) < 40;
-    if(!stops[i].isSF) el.className = "corner-marker" + (isNear ? " nearby" : "");
-  });
+  if(autoAdvance) {
+    const next = activeIdx + 1;
+    if(next < stops.length) {
+      const d = haversine(lat, lng, stops[next].lat, stops[next].lng);
+      if(d < 25) {
+        jumpTo(next);
+      } else {
+        const nextEl = document.getElementById(`cm-${next}`);
+        if(nextEl) nextEl.className = "corner-marker" + (d < 40 ? " nearby" : "");
+      }
+    }
+  }
 }
-function onGPSError() {
-  document.getElementById("gps-btn").className = "topbar-btn";
+function onGPSError(err) {
+  stopGPS();
+  const msgs = {1:"Location access denied", 2:"Location unavailable", 3:"Location timed out"};
+  const msg = msgs[err?.code] || "GPS error";
+  const btn = document.getElementById("gps-btn");
+  btn.className = "topbar-btn";
   document.getElementById("gps-label").textContent = "GPS";
+  // Brief error tooltip
+  const orig = btn.title;
+  btn.title = msg;
+  btn.style.borderColor = "#ff4444";
+  btn.style.color = "#ff4444";
+  setTimeout(() => { btn.style.borderColor = ""; btn.style.color = ""; btn.title = orig; }, 3000);
 }
 function haversine(lat1,lng1,lat2,lng2) {
   const R=6371000, dLat=(lat2-lat1)*Math.PI/180, dLng=(lng2-lng1)*Math.PI/180;
@@ -730,7 +757,7 @@ document.addEventListener("keydown", e => {
 
 // ── SERVICE WORKER ────────────────────────────────────────────
 if('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js').catch(() => {});
+  navigator.serviceWorker.register('/sw.js').catch(e => console.warn('SW registration failed:', e));
 }
 
 // ── FULLSCREEN ────────────────────────────────────────────────
