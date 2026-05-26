@@ -1,9 +1,7 @@
-const CACHE = 'monaco-walk-v1';
+const CACHE = 'monaco-walk-v2';
 const TILE_CACHE = 'monaco-tiles-v1';
-const MAX_TILE_CACHE = 1000; // max cached tiles
+const MAX_TILE_CACHE = 1000;
 const SHELL = [
-  '/',
-  '/index.html',
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
 ];
@@ -30,8 +28,7 @@ self.addEventListener('activate', e => {
 
 async function limitTileCache(cache) {
   const keys = await cache.keys();
-  if(keys.length > MAX_TILE_CACHE) {
-    // Delete oldest entries
+  if (keys.length > MAX_TILE_CACHE) {
     const toDelete = keys.slice(0, keys.length - MAX_TILE_CACHE);
     await Promise.all(toDelete.map(k => cache.delete(k)));
   }
@@ -40,28 +37,40 @@ async function limitTileCache(cache) {
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
 
-  // OSM tiles — separate cache with size limit
-  if(url.hostname.endsWith('tile.openstreetmap.org')) {
+  if (url.hostname.endsWith('tile.openstreetmap.org')) {
     e.respondWith(
       caches.open(TILE_CACHE).then(async cache => {
         const cached = await cache.match(e.request);
-        if(cached) return cached;
+        if (cached) return cached;
         try {
           const res = await fetch(e.request);
-          if(res.ok) {
+          if (res.ok) {
             cache.put(e.request, res.clone());
-            limitTileCache(cache); // async, don't await
+            limitTileCache(cache);
           }
           return res;
         } catch {
-          return new Response('', {status: 503});
+          return new Response('', { status: 503 });
         }
       })
     );
     return;
   }
 
-  // App shell — cache first
+  if (e.request.mode === 'navigate' || e.request.destination === 'document') {
+    e.respondWith(
+      fetch(e.request)
+        .then(res => {
+          if (res.ok) {
+            caches.open(CACHE).then(c => c.put(e.request, res.clone()));
+          }
+          return res;
+        })
+        .catch(() => caches.match(e.request))
+    );
+    return;
+  }
+
   e.respondWith(
     caches.match(e.request).then(cached => cached || fetch(e.request))
   );
