@@ -1,0 +1,11 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  security:
+    uses: drumandbytes/reusable-actions/.github/workflows/security-scan.yml@v1
