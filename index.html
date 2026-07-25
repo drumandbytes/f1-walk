@@ -169,6 +169,9 @@ html, body { height: 100%; font-family: 'Helvetica Neue', Arial, sans-serif; bac
 .welcome-skip { width: 100%; padding: 8px; background: transparent; border: none; color: #3a3a3a; font-size: 11px; cursor: pointer; margin-top: 6px; }
 .welcome-skip:hover { color: #555; }
 </style>
+<!-- Cloudflare Web Analytics -->
+<script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "72c82aa6897748678a9b235e0abd4cd4"}'></script>
+<!-- End Cloudflare Web Analytics -->
 </head>
 <body>
 <div id="app">
@@ -299,7 +302,7 @@ html, body { height: 100%; font-family: 'Helvetica Neue', Arial, sans-serif; bac
         <div class="help-body">
           <p>Racing line GPS from <a href="https://github.com/bacinger/f1-circuits" target="_blank" rel="noopener" style="color:#5bc4ff;text-decoration:none;font-weight:600;">bacinger/f1-circuits</a> (MIT licence, OpenStreetMap source). Historical facts are original writing.</p>
           <p>Unofficial fan project — not affiliated with Formula One Licensing B.V. or the Automobile Club de Monaco.</p>
-          <div class="data-pills" style="margin-top:8px"><span class="data-pill">✓ No data collected</span><span class="data-pill">✓ GPS stays on-device</span><span class="data-pill">✓ No cookies</span></div>
+          <div class="data-pills" style="margin-top:8px"><span class="data-pill">✓ GPS stays on-device</span><span class="data-pill">✓ No cookies</span><span class="data-pill">✓ Cookieless analytics only</span></div>
         </div>
       </div>
 
@@ -327,7 +330,7 @@ html, body { height: 100%; font-family: 'Helvetica Neue', Arial, sans-serif; bac
       </div>
       <p style="font-size:12px;color:#bba040;margin-top:14px;padding:11px 13px;border:1px solid #4a3a00;border-radius:5px;background:#1a1400;line-height:1.5;">⬇ <strong style="color:#ffd700;">Install as an app</strong> — Safari → Share → "Add to Home Screen" on iOS, or Chrome/Brave on Android. Works offline after first load.</p>
       <hr class="welcome-divider">
-      <p style="font-size:11px;color:#3a3a3a;">No data collected. GPS stays on your device. Fan project — not affiliated with F1 or ACM.</p>
+      <p style="font-size:11px;color:#3a3a3a;">No cookies. GPS stays on your device. Fan project — not affiliated with F1 or ACM.</p>
       <button class="welcome-start" onclick="startWalk()">Start the walk →</button>
       <button class="welcome-skip" onclick="dismissWelcome()">Skip intro</button>
     </div>
@@ -913,7 +916,7 @@ initMap();
 </ul>
 
 <h2>About This App</h2>
-<p>Built by Maris, a data engineer based in Estonia, the night before visiting Monaco during the 2026 Nice trip. GPS tracking uses your device's built-in location hardware — nothing is sent externally. No cookies, no analytics, no data collection. Works as a Progressive Web App (PWA) installable on iOS and Android for full offline use. Source on GitHub at drumandbytes/monaco-f1-walk. Unofficial fan project — not affiliated with Formula One Licensing B.V. or the Automobile Club de Monaco.</p>
+<p>Built by Maris, a data engineer based in Estonia, the night before visiting Monaco during the 2026 Nice trip. GPS tracking uses your device's built-in location hardware — nothing is sent externally. No cookies — privacy-friendly, cookieless Cloudflare Web Analytics only. Works as a Progressive Web App (PWA) installable on iOS and Android for full offline use. Source on GitHub at drumandbytes/monaco-f1-walk. Unofficial fan project — not affiliated with Formula One Licensing B.V. or the Automobile Club de Monaco.</p>
 
 </section>
 
