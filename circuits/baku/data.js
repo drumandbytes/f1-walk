@@ -55,6 +55,7 @@ const stops = [
     ...rl(6), sector:1, speed:null, gear:null, dist:'0.18',
     desc:'A 90-degree left-hander, heavy on the brakes at the end of the long start/finish straight.',
     facts:[
+      {icon:'📏',tag:'record',title:'Second-shortest run to Turn 1',text:"At <strong>170 metres</strong> from the line, this is the second-shortest sprint to the first corner on the F1 calendar — behind only Monaco's Sainte Dévote."},
       {icon:'🏆',tag:'overtake',title:'2024 — Piastri takes the lead',text:"On lap 20, <strong>Oscar Piastri</strong> swooped past <strong>Charles Leclerc</strong> into Turn 1 for the race lead, going on to win — McLaren's first Baku victory, and a result that put them top of the Constructors' Championship for the first time since 2014."},
       {icon:'💥',tag:'crash',title:'2018 — Red Bulls collide',text:"On lap 40, <strong>Daniel Ricciardo</strong> ran into the back of team-mate <strong>Max Verstappen</strong> here while trying to pass, putting both Red Bulls out of the race. It was their third coming-together of the afternoon — Christian Horner reprimanded both drivers afterwards."},
       {icon:'💥',tag:'crash',title:"2021 — Hamilton's late-race mistake",text:"Fighting for the win on a late restart, <strong>Lewis Hamilton</strong> accidentally hit his 'brake magic' button, altering his brake balance, and missed the braking point here — ending a run of 55 consecutive points finishes."},
@@ -137,7 +138,9 @@ const stops = [
   { id:14, label:'T14', name:'Turn 14',
     ...rl(109), sector:2, speed:null, gear:null, dist:'3.37',
     desc:'The second left-hand kink of the pair, still flat out over the crest.',
-    facts:[]},
+    facts:[
+      {icon:'🏛',tag:'fact',title:'A lap through Baku\'s architecture',text:"In one lap, the circuit passes preserved ruins of the Old City, Soviet-era apartment blocks, and glass-fronted modern skyscrapers — a cross-section of Baku's history in 6 kilometres."},
+    ]},
   { id:15, label:'T15', name:'Turn 15',
     ...rl(115), sector:2, speed:null, gear:null, dist:'3.60',
     desc:'Hard on the brakes as the track drops downhill into this left-hander — the exit wall here punishes any mistake.',
@@ -159,7 +162,9 @@ const stops = [
   { id:18, label:'T18', name:'Turn 18',
     ...rl(139), sector:3, speed:null, gear:null, dist:'4.38',
     desc:'Still in the slalom, flat out, threading between the walls.',
-    facts:[]},
+    facts:[
+      {icon:'🌍',tag:'fact',title:'A city on the old Silk Road',text:"Baku's position on the historic Silk Road trade routes helped make it home to <strong>70 different nationalities</strong> today — a legacy of centuries as a crossroads between Europe and Asia."},
+    ]},
   { id:19, label:'T19', name:'Turn 19',
     ...rl(144), sector:3, speed:null, gear:null, dist:'4.52',
     desc:'The penultimate kink of the slalom, cars already carrying huge speed.',
