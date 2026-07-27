@@ -15,6 +15,20 @@ const ROOT_SLUG = 'monaco';
 
 const STATIC_ASSETS = ['manifest.json', 'sw.js', 'icon.svg', '_headers', 'preview.png'];
 
+// Derives the CSS-variable and favicon color tokens from a single #rrggbb,
+// so circuits/<slug>/meta.json only ever has to specify one color.
+function deriveColors(hex) {
+  const n = parseInt(hex.replace('#', ''), 16);
+  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  const darken = (c) => Math.max(0, Math.round(c * 0.85));
+  const toHex = (c) => c.toString(16).padStart(2, '0');
+  return {
+    rgb: `${r},${g},${b}`,
+    hover: `#${toHex(darken(r))}${toHex(darken(g))}${toHex(darken(b))}`,
+    encoded: '%23' + hex.replace('#', ''),
+  };
+}
+
 function renderCircuit(slug) {
   const dir = path.join(CIRCUITS_DIR, slug);
   const meta = JSON.parse(fs.readFileSync(path.join(dir, 'meta.json'), 'utf8'));
@@ -22,6 +36,7 @@ function renderCircuit(slug) {
   const seo = fs.readFileSync(path.join(dir, 'seo.html'), 'utf8').replace(/\n$/, '');
 
   const modifiedTime = new Date().toISOString().replace(/\.\d{3}Z$/, '+00:00');
+  const colors = deriveColors(meta.themeColor);
   const welcomeStepsHtml = meta.welcomeSteps
     .map((t, i) => `        <div class="welcome-step"><div class="step-num">${i + 1}</div><div class="step-text">${t}</div></div>`)
     .join('\n');
@@ -38,6 +53,9 @@ function renderCircuit(slug) {
     '{{TWITTER_TITLE}}': meta.twitterTitle,
     '{{TWITTER_DESCRIPTION}}': meta.twitterDescription,
     '{{THEME_COLOR}}': meta.themeColor,
+    '{{THEME_COLOR_HOVER}}': colors.hover,
+    '{{THEME_COLOR_RGB}}': colors.rgb,
+    '{{THEME_COLOR_ENCODED}}': colors.encoded,
     '{{APPLE_TITLE}}': meta.appleTitle,
     '{{STOP_COUNT_LABEL}}': meta.stopCountLabel,
     '{{ABOUT_STORY}}': meta.aboutStory,
