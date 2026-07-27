@@ -43,17 +43,26 @@ There is a pedestrian path along the full 172m of the tunnel on the **left-hand 
 
 ## Files
 
-| File | Description |
+The site is generated: `templates/circuit.html` is a single shared template, and `circuits/<slug>/` holds each circuit's data (racing line, corner facts, meta copy). `build.js` renders one static page per circuit into `dist/`, which is what actually gets deployed. There's currently one circuit, `monaco`, and its page is also copied to the site root so the existing `monaco-f1-walk.drumandbytes.dev` URL keeps working unchanged.
+
+| Path | Description |
 |------|-------------|
-| `index.html` | Main app — all HTML, CSS, and JS in a single file |
+| `templates/circuit.html` | Shared HTML/CSS/JS template for every circuit page |
+| `circuits/<slug>/data.js` | Racing line, corners, and facts for that circuit |
+| `circuits/<slug>/meta.json` | Titles, descriptions, and other per-circuit copy |
+| `circuits/<slug>/seo.html` | Hidden crawlable content block for that circuit |
+| `build.js` | Renders `templates/` + `circuits/` into `dist/` (no dependencies — plain Node) |
+| `dist/` | Build output — generated, not committed |
 | `manifest.json` | PWA manifest (name, icons, display mode) |
 | `sw.js` | Service worker — caches app shell and OSM map tiles |
 | `icon.svg` | Monaco flag app icon (red/white, F1 text) |
-| `.github/workflows/deploy.yml` | GitHub Actions CI — auto-deploys to Cloudflare Pages on push to main |
+| `.github/workflows/deploy.yaml` | GitHub Actions CI — builds and deploys to Cloudflare Pages on push to main |
+
+To work on a circuit's content or copy, edit its files under `circuits/`, or `templates/circuit.html` for changes shared by every circuit, then run `node build.js` and open `dist/monaco/index.html` to preview.
 
 ## Deployment
 
-Deployments are handled automatically via GitHub Actions on every push to `main`. Two secrets are required in the repo settings:
+Deployments are handled automatically via GitHub Actions on every push to `main`, which runs `node build.js` and publishes `dist/`. Two secrets are required in the repo settings:
 
 - `CLOUDFLARE_API_TOKEN` — create at Cloudflare dashboard → My Profile → API Tokens
 - `CLOUDFLARE_ACCOUNT_ID` — found on the Cloudflare Workers & Pages overview page
@@ -61,7 +70,7 @@ Deployments are handled automatically via GitHub Actions on every push to `main`
 To deploy manually:
 
 ```bash
-npx wrangler pages deploy . --project-name monaco-f1-walk
+node build.js && npx wrangler pages deploy dist --project-name monaco-f1-walk
 ```
 
 ## Data & attribution
