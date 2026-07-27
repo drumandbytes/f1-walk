@@ -6,6 +6,13 @@
 // direction arcs in the source data that the real circuit still numbers
 // as separate corners — those positions are proportional-distance
 // estimates within the confirmed arc, not independently pinned per corner.
+//
+// speed/gear: minimum corner speed (km/h) and gear, from a technical
+// graphic recurring across autoracing1.com's Baku previews (seen
+// unchanged on both the 2024 and 2025 editions). T13 and T18 show gear 2
+// at 265-270 km/h, inconsistent with neighboring similar-speed corners
+// (which show gear 6-8) -- likely an error in the source graphic itself.
+// Included as-is; no telemetry-verified alternative was available.
 const racingLine = [
   [40.372688,49.853247],[40.372833,49.853691],[40.372978,49.854135],[40.373123,49.854579],[40.373268,49.855023],[40.373325,49.855117],
   [40.373409,49.855177],[40.37349,49.855189],[40.373607,49.855159],[40.373963,49.854979],[40.374319,49.854798],[40.374619,49.854595],
@@ -52,7 +59,7 @@ const stops = [
       {icon:'⚙️',tag:'record',title:'Most gear changes of any circuit',text:'Drivers make <strong>71 gear changes per lap</strong> here — more than anywhere else on the 2025 calendar, a product of swinging between hairpin-tight corners and flat-out straights.'},
     ]},
   { id:1, label:'T1', name:'Turn 1',
-    ...rl(6), sector:1, speed:null, gear:null, dist:'0.18',
+    ...rl(6), sector:1, speed:120, gear:2, dist:'0.18',
     desc:'A 90-degree left-hander, heavy on the brakes at the end of the long start/finish straight.',
     facts:[
       {icon:'📏',tag:'record',title:'Second-shortest run to Turn 1',text:"At <strong>170 metres</strong> from the line, this is the second-shortest sprint to the first corner on the F1 calendar — behind only Monaco's Sainte Dévote."},
@@ -61,118 +68,118 @@ const stops = [
       {icon:'💥',tag:'crash',title:"2021 — Hamilton's late-race mistake",text:"Fighting for the win on a late restart, <strong>Lewis Hamilton</strong> accidentally hit his 'brake magic' button, altering his brake balance, and missed the braking point here — ending a run of 55 consecutive points finishes."},
     ]},
   { id:2, label:'T2', name:'Turn 2',
-    ...rl(17), sector:1, speed:null, gear:null, dist:'0.52',
+    ...rl(17), sector:1, speed:95, gear:2, dist:'0.52',
     desc:'Another 90-degree left, straight off the back of Turn 1, leading onto the first DRS straight.',
     facts:[
       {icon:'💥',tag:'crash',title:'2025 — Bearman clips the wall',text:"<strong>Oliver Bearman's</strong> rear end stepped out exiting Turn 2 in Q2, striking the barrier — one of a record six red flags across that qualifying session, the most in F1 history."},
     ]},
   { id:3, label:'T3', name:'Turn 3',
-    ...rl(40), sector:1, speed:null, gear:null, dist:'1.38',
+    ...rl(40), sector:1, speed:100, gear:2, dist:'1.38',
     desc:'A right-angled left with a wide escape road — one that sees plenty of visitors across a race weekend.',
     facts:[
       {icon:'💥',tag:'crash',title:'2024 — Pérez and Sainz collide',text:"On the penultimate lap, <strong>Sergio Pérez</strong> and <strong>Carlos Sainz</strong> tangled while fighting for third place on the run down to Turn 3, both hitting the barrier at high speed and retiring on the spot."},
       {icon:'💥',tag:'crash',title:'2025 — Piastri in qualifying',text:"<strong>Oscar Piastri</strong> missed the apex here in Q3 and hit the opposite barrier — one of six red flags in a session that set F1's all-time record."},
     ]},
   { id:4, label:'T4', name:'Turn 4',
-    ...rl(47), sector:1, speed:null, gear:null, dist:'1.60',
+    ...rl(47), sector:1, speed:95, gear:2, dist:'1.60',
     desc:'The first right-hander of the lap, a 90-degree test. The track opens up slightly on exit, which can tempt drivers into the wall.',
     facts:[
       {icon:'💥',tag:'crash',title:'2025 — Chaos in one session',text:"In a single qualifying session, <strong>Nico Hülkenberg</strong> crashed here with front wing and floor damage, <strong>Pierre Gasly</strong> went off, and <strong>Franco Colapinto</strong> hit the wall nearby — all in Q1. In 2018, <strong>Nico Hülkenberg</strong> had also retired here after hitting the wall on lap 11, and in 2024 Colapinto crashed here in practice too."},
       {icon:'🛢',tag:'fact',title:"The city that funded the Nobel Prize",text:"Baku drilled the <strong>world's first industrial oil well</strong> in 1846, 13 years before Pennsylvania's famous one. The Nobel brothers made their fortune in Baku's oil boom — about <strong>12% of the Nobel Prize endowment</strong> traces back to it."},
     ]},
   { id:5, label:'T5', name:'Turn 5',
-    ...rl(57), sector:1, speed:null, gear:null, dist:'1.94',
+    ...rl(57), sector:1, speed:105, gear:2, dist:'1.94',
     desc:'A left-hander, immediately compromised by the switchback that follows at Turn 6.',
     facts:[
       {icon:'💥',tag:'crash',title:'2023 — Leclerc crashes, still takes pole',text:"<strong>Charles Leclerc</strong> locked up and crashed out here on his final lap of the Sprint Shootout — and still secured pole position."},
     ]},
   { id:6, label:'T6', name:'Turn 6',
-    ...rl(60), sector:1, speed:null, gear:null, dist:'2.00',
+    ...rl(60), sector:1, speed:95, gear:2, dist:'2.00',
     desc:'An instant switchback right after Turn 5, with the wall pinching in on exit.',
     facts:[
       {icon:'💥',tag:'crash',title:"2025 — The championship leader's disastrous day",text:"<strong>Oscar Piastri</strong>, then leading the championship, jumped the start and triggered anti-stall, dropping to last place — then crashed here on lap 1 for good measure."},
     ]},
   { id:7, label:'T7', name:'Turn 7',
-    ...rl(73), sector:1, speed:null, gear:null, dist:'2.39',
+    ...rl(73), sector:1, speed:75, gear:2, dist:'2.39',
     desc:'An acute right-hander as the track tightens further — tricky in low sun.',
     facts:[
       {icon:'💥',tag:'crash',title:'2025 — Albon collects Colapinto',text:"On lap 17, <strong>Alexander Albon</strong> hit the rear of <strong>Franco Colapinto's</strong> car here, spinning him and bringing out the safety car. Albon was handed a 10-second penalty."},
     ]},
   { id:8, label:'T8', name:'Turn 8',
-    ...rl(79), sector:2, speed:null, gear:null, dist:'2.59',
+    ...rl(79), sector:2, speed:115, gear:2, dist:'2.59',
     desc:"Entry to the castle section — Turns 8 to 11 form the narrowest point on the entire F1 calendar, right alongside the Old City's medieval fortress wall.",
     facts:[
       {icon:'📏',tag:'record',title:'Narrowest point in F1: 7.6 metres',text:'At its tightest, the track through Turns 8 to 11 is just <strong>7.6 metres wide</strong> — the narrowest point on the F1 calendar.'},
       {icon:'💥',tag:'crash',title:'2021 — Sainz outbrakes himself',text:"On lap 11, <strong>Carlos Sainz</strong> outbraked himself into the Turn 8 chicane, running wide and dropping from 6th to 15th in one move."},
     ]},
   { id:9, label:'T9', name:'Turn 9',
-    ...rl(81), sector:2, speed:null, gear:null, dist:'2.61',
+    ...rl(81), sector:2, speed:125, gear:3, dist:'2.61',
     desc:'Deep in the castle sequence, barely wide enough for two cars side by side.',
     facts:[
       {icon:'🗼',tag:'fact',title:'The Maiden Tower, right alongside',text:"The <strong>Qız Qalası</strong> (Maiden Tower) towers over this section — nobody actually knows when it was built or what it was for. One legend says a king built it to hide his daughter from a prophecy that a snake would kill her; a snake, smuggled in with fruit, killed her anyway."},
     ]},
   { id:10, label:'T10', name:'Turn 10',
-    ...rl(83), sector:2, speed:null, gear:null, dist:'2.65',
+    ...rl(83), sector:2, speed:115, gear:2, dist:'2.65',
     desc:'Still inside the castle walls — one steering line only, with no room to correct a mistake.',
     facts:[
       {icon:'💥',tag:'crash',title:"2016 — Hamilton's Q3 heartbreaker",text:"With just two minutes left in Q3, <strong>Lewis Hamilton</strong> clipped the barrier here, breaking his front suspension and triggering a red flag that ended the session."},
     ]},
   { id:11, label:'T11', name:'Turn 11',
-    ...rl(86), sector:2, speed:null, gear:null, dist:'2.68',
+    ...rl(86), sector:2, speed:95, gear:2, dist:'2.68',
     desc:'The castle sequence ends here as the track opens up again, near the top of the hill.',
     facts:[
       {icon:'🏎',tag:'fact',title:'A cambered blind corner',text:"Turn 11 is cambered and blind on entry — the last of the tight castle corners before the track opens into the faster sweepers that follow."},
     ]},
   { id:12, label:'T12', name:'Turn 12',
-    ...rl(89), sector:2, speed:null, gear:null, dist:'2.74',
+    ...rl(89), sector:2, speed:110, gear:2, dist:'2.74',
     desc:'A 90-degree left with room on exit, leading to the highest point on the circuit.',
     facts:[
       {icon:'⛰',tag:'record',title:'Highest point on the circuit',text:'Turn 12 leads to the highest elevation point of the lap, after the climb through the castle section.'},
     ]},
   { id:13, label:'T13', name:'Turn 13',
-    ...rl(103), sector:2, speed:null, gear:null, dist:'3.16',
+    ...rl(103), sector:2, speed:265, gear:2, dist:'3.16',
     desc:'The first of two left-hand kinks taken flat out, crossing the crest of the hill.',
     facts:[
       {icon:'💥',tag:'crash',title:"2023 — Tsunoda's rough sprint",text:"<strong>Yuki Tsunoda</strong> hit the wall here during the 2023 sprint race, stripping his rear-left tyre. He retired the following lap after an unsafe pit release."},
     ]},
   { id:14, label:'T14', name:'Turn 14',
-    ...rl(109), sector:2, speed:null, gear:null, dist:'3.37',
+    ...rl(109), sector:2, speed:295, gear:8, dist:'3.37',
     desc:'The second left-hand kink of the pair, still flat out over the crest.',
     facts:[
       {icon:'🏛',tag:'fact',title:'A lap through Baku\'s architecture',text:"In one lap, the circuit passes preserved ruins of the Old City, Soviet-era apartment blocks, and glass-fronted modern skyscrapers — a cross-section of Baku's history in 6 kilometres."},
     ]},
   { id:15, label:'T15', name:'Turn 15',
-    ...rl(115), sector:2, speed:null, gear:null, dist:'3.60',
+    ...rl(115), sector:2, speed:95, gear:2, dist:'3.60',
     desc:'Hard on the brakes as the track drops downhill into this left-hander — the exit wall here punishes any mistake.',
     facts:[
       {icon:'💥',tag:'crash',title:"Baku's most-crashed corner",text:"This downhill braking zone has claimed cars in practice sessions across multiple years: <strong>Daniel Ricciardo</strong> and <strong>Felipe Massa</strong> in 2016, and both <strong>Charles Leclerc</strong> and <strong>Max Verstappen</strong> in 2021."},
     ]},
   { id:16, label:'T16', name:'Turn 16',
-    ...rl(126), sector:3, speed:null, gear:null, dist:'3.94',
+    ...rl(126), sector:3, speed:130, gear:3, dist:'3.94',
     desc:'A fast left-hander that feeds the circuit onto the long run back to the start/finish line.',
     facts:[
       {icon:'🏎',tag:'fact',title:'A big kerb before the longest run',text:"The large exit kerb here can destabilise the car right before the longest full-throttle section of the lap, roughly 1.5 miles (2.4 km) of flat-out running."},
     ]},
   { id:17, label:'T17', name:'Turn 17',
-    ...rl(133), sector:3, speed:null, gear:null, dist:'4.14',
+    ...rl(133), sector:3, speed:215, gear:6, dist:'4.14',
     desc:'The first kink of the high-speed slalom into the final stretch, taken at full throttle.',
     facts:[
       {icon:'💨',tag:'fact',title:'The city of winds',text:"\"Baku\" likely derives from the Persian <em>bād-kube</em>, roughly \"wind-pounded\" or \"gust of wind\" — fitting for a seafront straight where crosswinds off the Caspian are a real factor at 300+ km/h."},
     ]},
   { id:18, label:'T18', name:'Turn 18',
-    ...rl(139), sector:3, speed:null, gear:null, dist:'4.38',
+    ...rl(139), sector:3, speed:270, gear:2, dist:'4.38',
     desc:'Still in the slalom, flat out, threading between the walls.',
     facts:[
       {icon:'🌍',tag:'fact',title:'A city on the old Silk Road',text:"Baku's position on the historic Silk Road trade routes helped make it home to <strong>70 different nationalities</strong> today — a legacy of centuries as a crossroads between Europe and Asia."},
     ]},
   { id:19, label:'T19', name:'Turn 19',
-    ...rl(144), sector:3, speed:null, gear:null, dist:'4.52',
+    ...rl(144), sector:3, speed:290, gear:8, dist:'4.52',
     desc:'The penultimate kink of the slalom, cars already carrying huge speed.',
     facts:[
       {icon:'⚡',tag:'record',title:'F1\'s fastest recorded speed',text:'A Baku speed trap recorded <strong>378 km/h (235 mph)</strong> in 2016 — the fastest speed ever recorded in a Formula 1 race.'},
     ]},
   { id:20, label:'T20', name:'Turn 20',
-    ...rl(154), sector:3, speed:null, gear:null, dist:'4.89',
+    ...rl(154), sector:3, speed:310, gear:8, dist:'4.89',
     desc:'The last corner of the lap, leading onto the DRS straight back to the line.',
     facts:[
       {icon:'📐',tag:'record',title:'Longest straight in F1',text:'The run from here back to the S/F line is around <strong>2.2 km</strong> — the longest straight on the current F1 calendar.'},
