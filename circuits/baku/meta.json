@@ -10,11 +10,11 @@
   "twitterDescription": "Walk key sections of the Baku City Circuit, from the seafront straight to the Old City walls, with GPS tracking, historical facts, and offline maps.",
   "themeColor": "#3b82f6",
   "appleTitle": "Baku Walk",
-  "stopCountLabel": "6 stops",
+  "stopCountLabel": "5 stops",
   "aboutStory": "        <p>Unlike the original Monaco guide — built the night before an actual visit and beta tested on the circuit itself — this Baku guide was researched remotely, not walked in person.</p>\n        <p>The racing line comes from public GPS data and the historical facts are sourced from race reports, but details like exact pedestrian access through the Old City haven't been confirmed on foot.</p>\n        <p>Treat it as a solid starting point rather than ground truth, and if you walk it yourself, corrections and reports are very welcome.</p>",
   "helpSubtitle": "Fan-made walking guide — S/F line and key sections of the Baku City Circuit",
   "helpOfflineNote": "After first load, the app and map tiles work fully offline. This makes it useful as a <strong>general Baku GPS map</strong> even when roaming doesn't work — Azerbaijan is outside the EU, so data roaming may be expensive or unavailable.",
-  "quirkTitle": "The Old City (T8–T10)",
+  "quirkTitle": "The Old City (T8–T11)",
   "quirkBody": "This section runs through <strong>Icherisheher</strong>, Baku's UNESCO-listed walled Old City, along streets that are open to the public outside race week. Unlike the Monaco tunnel walkway, this hasn't been walked and verified in person yet — treat pedestrian access here as unconfirmed until someone reports back.",
   "welcomeSub": "Walk key sections of the Baku City Circuit, from the seafront to the Old City walls.",
   "welcomeSteps": [
