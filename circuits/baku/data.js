@@ -9,10 +9,12 @@
 //
 // speed/gear: minimum corner speed (km/h) and gear, from a technical
 // graphic recurring across autoracing1.com's Baku previews (seen
-// unchanged on both the 2024 and 2025 editions). T13 and T18 show gear 2
-// at 265-270 km/h, inconsistent with neighboring similar-speed corners
-// (which show gear 6-8) -- likely an error in the source graphic itself.
-// Included as-is; no telemetry-verified alternative was available.
+// unchanged on both the 2024 and 2025 editions). T13 and T18 were listed
+// there as gear 2 at 265-270 km/h, physically inconsistent with every
+// other corner at that speed in the same dataset (T14/T19/T20 at
+// 290-310 km/h are all gear 8) -- corrected to gear 8 here, since 260+
+// km/h sits solidly in top gear for a modern F1 car. Speed values are
+// left as sourced.
 const racingLine = [
   [40.372688,49.853247],[40.372833,49.853691],[40.372978,49.854135],[40.373123,49.854579],[40.373268,49.855023],[40.373325,49.855117],
   [40.373409,49.855177],[40.37349,49.855189],[40.373607,49.855159],[40.373963,49.854979],[40.374319,49.854798],[40.374619,49.854595],
@@ -137,7 +139,7 @@ const stops = [
       {icon:'⛰',tag:'record',title:'Highest point on the circuit',text:'Turn 12 leads to the highest elevation point of the lap, after the climb through the castle section.'},
     ]},
   { id:13, label:'T13', name:'Turn 13',
-    ...rl(103), sector:2, speed:265, gear:2, dist:'3.16',
+    ...rl(103), sector:2, speed:265, gear:8, dist:'3.16',
     desc:'The first of two left-hand kinks taken flat out, crossing the crest of the hill.',
     facts:[
       {icon:'💥',tag:'crash',title:"2023 — Tsunoda's rough sprint",text:"<strong>Yuki Tsunoda</strong> hit the wall here during the 2023 sprint race, stripping his rear-left tyre. He retired the following lap after an unsafe pit release."},
@@ -167,7 +169,7 @@ const stops = [
       {icon:'💨',tag:'fact',title:'The city of winds',text:"\"Baku\" likely derives from the Persian <em>bād-kube</em>, roughly \"wind-pounded\" or \"gust of wind\" — fitting for a seafront straight where crosswinds off the Caspian are a real factor at 300+ km/h."},
     ]},
   { id:18, label:'T18', name:'Turn 18',
-    ...rl(139), sector:3, speed:270, gear:2, dist:'4.38',
+    ...rl(139), sector:3, speed:270, gear:8, dist:'4.38',
     desc:'Still in the slalom, flat out, threading between the walls.',
     facts:[
       {icon:'🌍',tag:'fact',title:'A city on the old Silk Road',text:"Baku's position on the historic Silk Road trade routes helped make it home to <strong>70 different nationalities</strong> today — a legacy of centuries as a crossroads between Europe and Asia."},
