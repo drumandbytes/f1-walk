@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Circuit alignment tool (dev only)</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  html, body { height: 100%; margin: 0; font-family: -apple-system, Helvetica, Arial, sans-serif; background: #111; color: #eee; }
+  #app { display: flex; height: 100vh; }
+  #map { flex: 1; min-width: 0; }
+  #panel { width: 400px; flex-shrink: 0; background: #1a1a1a; overflow-y: auto; padding: 12px; box-sizing: border-box; border-left: 1px solid #333; }
+  h2 { font-size: 14px; margin: 0 0 8px; color: #fff; }
+  h3 { font-size: 12px; margin: 14px 0 6px; color: #aaa; text-transform: uppercase; letter-spacing: .04em; }
+  .stoplist { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px; }
+  .stopbtn { background: #262626; border: 1px solid #3a3a3a; color: #ddd; font-size: 11px; padding: 4px 7px; border-radius: 4px; cursor: pointer; }
+  .stopbtn.active { background: #7c3aed; border-color: #7c3aed; color: #fff; }
+  .row { display: flex; align-items: center; gap: 6px; margin: 6px 0; }
+  label { font-size: 11px; color: #999; width: 70px; flex-shrink: 0; }
+  select, input[type=number] { background: #0e0e0e; border: 1px solid #333; color: #eee; padding: 4px 6px; border-radius: 4px; font-size: 12px; }
+  select { width: 100%; }
+  input[type=range] { flex: 1; }
+  button { background: #2563eb; border: none; color: #fff; padding: 6px 10px; border-radius: 4px; font-size: 11px; cursor: pointer; }
+  button.secondary { background: #3a3a3a; }
+  #exportBox { width: 100%; height: 260px; background: #0e0e0e; border: 1px solid #333; color: #9cdcfe; font-family: monospace; font-size: 10px; padding: 6px; box-sizing: border-box; white-space: pre; overflow: auto; }
+  .hint { font-size: 10px; color: #777; line-height: 1.5; margin: 6px 0; }
+  .modebtn.on { background: #059669; }
+  #statusline { font-size: 11px; color: #7dd3fc; min-height: 32px; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="map"></div>
+  <div id="panel">
+    <h2>Circuit alignment tool</h2>
+    <div class="hint">Dev-only, not part of the built app. Loads a circuit's real data.js over HTTP, so serve the repo root (e.g. <code>python3 -m http.server</code>) and open this via <code>/tools/align.html</code>.</div>
+
+    <h3>Circuit</h3>
+    <div class="row">
+      <select id="circuitSelect"></select>
+      <button id="loadBtn">Load</button>
+    </div>
+    <div id="statusline"></div>
+
+    <h3>Modes</h3>
+    <div class="row">
+      <button id="modeAdd" class="secondary modebtn">+ Add line point (click map)</button>
+      <button id="modeDelete" class="secondary modebtn">- Delete line point (click dot)</button>
+    </div>
+    <div class="hint">Drag a small <b>dot</b> to reshape the line. Drag a big <b>pin</b> to move a corner — it snaps onto the nearest existing line point if close, or inserts a new line point at the exact drop location otherwise. Corners are always representable as <code>rl(idx)</code>, matching the app's data format.</div>
+
+    <h3>Corners</h3>
+    <div class="stoplist" id="stoplist"></div>
+    <div id="selectedPanel" style="display:none">
+      <div class="row"><label>Selected</label><span id="selName" style="font-size:12px"></span></div>
+      <div class="row"><label>Line idx</label><input type="range" id="idxSlider" min="0" max="180" step="1">
+        <span id="idxLabel" style="font-size:11px;color:#999;width:40px"></span></div>
+    </div>
+
+    <h3>Export</h3>
+    <div class="row"><button id="exportBtn">Generate code</button><button id="copyBtn" class="secondary">Copy</button></div>
+    <textarea id="exportBox" readonly></textarea>
+  </div>
+</div>
+<script>
+const KNOWN_CIRCUITS = ['monaco', 'baku', 'singapore'];
+const sel = document.getElementById('circuitSelect');
+KNOWN_CIRCUITS.forEach(slug => {
+  const o = document.createElement('option');
+  o.value = slug; o.textContent = slug;
+  sel.appendChild(o);
+});
+
+const map = L.map('map', {center: [0,0], zoom: 2});
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:20, maxNativeZoom:19}).addTo(map);
+
+let racingLine = [];
+let stops = [];
+let polyline = null;
+let lineMarkers = [];
+let stopMarkers = [];
+let selectedStopId = null;
+let mode = null;
+
+function setStatus(msg) { document.getElementById('statusline').textContent = msg; }
+
+function hav(a, b) {
+  const R = 6371000, toRad = x => x*Math.PI/180;
+  const dLat = toRad(b[0]-a[0]), dLng = toRad(b[1]-a[1]);
+  const x = Math.sin(dLat/2)**2 + Math.cos(toRad(a[0]))*Math.cos(toRad(b[0]))*Math.sin(dLng/2)**2;
+  return R*2*Math.atan2(Math.sqrt(x), Math.sqrt(1-x));
+}
+
+async function loadCircuit(slug) {
+  setStatus('Loading ' + slug + '...');
+  const res = await fetch('../circuits/' + slug + '/data.js');
+  if (!res.ok) { setStatus('Failed to fetch data.js (' + res.status + '). Serve the repo root over HTTP, not file://.'); return; }
+  const src = await res.text();
+  try {
+    const wrapped = new Function(
+      'function rl(n){const p=racingLine[n]??racingLine[0];return{lat:p[0],lng:p[1]};}\n' +
+      src +
+      '\nreturn {racingLine, stops: stops.map(s=>({id:s.id,label:s.label,name:s.name,isSF:!!s.isSF,lat:s.lat,lng:s.lng,dist:s.dist})), sectors};'
+    );
+    const data = wrapped();
+    racingLine = data.racingLine.map(p => [p[0], p[1]]);
+    stops = data.stops.map(s => ({...s}));
+    setStatus('Loaded ' + slug + ': ' + racingLine.length + ' line points, ' + stops.length + ' stops.');
+    rebuildAll();
+  } catch (e) {
+    setStatus('Parse error: ' + e.message);
+  }
+}
+
+function rebuildAll() {
+  if (polyline) map.removeLayer(polyline);
+  polyline = L.polyline(racingLine, {color:'#7c3aed', weight:4, opacity:0.85}).addTo(map);
+  rebuildLineMarkers();
+  rebuildStopMarkers();
+  buildStoplist();
+  setTimeout(() => {
+    map.invalidateSize();
+    map.fitBounds(polyline.getBounds());
+  }, 50);
+}
+
+function redrawLine() { polyline.setLatLngs(racingLine); }
+
+function enableDrag(marker, onMove, onEnd) {
+  let dragging = false;
+  marker.on('mousedown', (e) => { dragging = true; map.dragging.disable(); L.DomEvent.stop(e); });
+  map.on('mousemove', (e) => { if (dragging) { marker.setLatLng(e.latlng); onMove(e.latlng); } });
+  map.on('mouseup', (e) => { if (dragging) { dragging = false; map.dragging.enable(); if (onEnd) onEnd(e.latlng); } });
+}
+
+function rebuildLineMarkers() {
+  lineMarkers.forEach(m => map.removeLayer(m));
+  lineMarkers = racingLine.map((p, i) => {
+    const m = L.circleMarker(p, {radius:4, color:'#a78bfa', fillColor:'#a78bfa', fillOpacity:0.8, weight:1});
+    m.on('click', () => { if (mode === 'delete') deleteLinePoint(i); });
+    m.addTo(map);
+    enableDrag(m, (latlng) => { racingLine[i] = [latlng.lat, latlng.lng]; redrawLine(); });
+    return m;
+  });
+}
+
+function deleteLinePoint(i) {
+  if (racingLine.length <= 3) { setStatus('Need at least 3 line points.'); return; }
+  racingLine.splice(i, 1);
+  redrawLine();
+  rebuildLineMarkers();
+  // shift any stop idx references down
+  stops.forEach(s => { if (s._idx !== undefined && s._idx > i) s._idx--; });
+  setStatus('Deleted line point ' + i);
+}
+
+function nearestLineIndex(lat, lng) {
+  let best = 0, bestD = Infinity;
+  racingLine.forEach((p, i) => { const d = hav([lat,lng], p); if (d < bestD) { bestD = d; best = i; } });
+  return {idx: best, dist: bestD};
+}
+
+const SNAP_METERS = 8;
+
+function stopIcon(s) {
+  const bg = s.isSF ? '#c8960c' : '#7c3aed';
+  const html = `<div style="background:${bg};color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:10px;border:2px solid #fff;white-space:nowrap;">${s.label}</div>`;
+  return L.divIcon({className:'', html, iconSize:[30,20], iconAnchor:[15,10]});
+}
+
+function rebuildStopMarkers() {
+  stopMarkers.forEach(m => map.removeLayer(m));
+  stopMarkers = stops.map(s => {
+    const m = L.marker([s.lat, s.lng], {icon: stopIcon(s)});
+    m.on('click', () => selectStop(s.id));
+    m.addTo(map);
+    enableDrag(m, (latlng) => { s.lat = latlng.lat; s.lng = latlng.lng; }, (latlng) => {
+      const {idx, dist} = nearestLineIndex(latlng.lat, latlng.lng);
+      if (dist <= SNAP_METERS) {
+        s.lat = racingLine[idx][0]; s.lng = racingLine[idx][1];
+        setStatus(s.label + ' snapped to existing line idx ' + idx + ' (' + dist.toFixed(1) + 'm away).');
+      } else {
+        // insert a new line point at the drop location, right after the nearest point
+        const insertAt = idx + 1;
+        racingLine.splice(insertAt, 0, [latlng.lat, latlng.lng]);
+        redrawLine();
+        rebuildLineMarkers();
+        s.lat = latlng.lat; s.lng = latlng.lng;
+        setStatus(s.label + ' inserted new line point at idx ' + insertAt + ' (nearest existing point was ' + dist.toFixed(1) + 'm away).');
+      }
+      m.setLatLng([s.lat, s.lng]);
+      if (selectedStopId === s.id) syncSelectedInputs();
+    });
+    return m;
+  });
+}
+
+function buildStoplist() {
+  const el = document.getElementById('stoplist');
+  el.innerHTML = '';
+  stops.forEach(s => {
+    const b = document.createElement('button');
+    b.className = 'stopbtn';
+    b.textContent = s.label;
+    b.onclick = () => { selectStop(s.id); map.setView([s.lat, s.lng], 18, {animate:true}); };
+    el.appendChild(b);
+  });
+}
+
+function selectStop(id) {
+  selectedStopId = id;
+  document.querySelectorAll('.stopbtn').forEach((b,i) => b.classList.toggle('active', stops[i].id === id));
+  document.getElementById('selectedPanel').style.display = 'block';
+  const s = stops.find(s => s.id === id);
+  document.getElementById('selName').textContent = s.label + ' (' + s.name + ')';
+  document.getElementById('idxSlider').max = racingLine.length - 1;
+  syncSelectedInputs();
+}
+
+function syncSelectedInputs() {
+  const s = stops.find(s => s.id === selectedStopId);
+  if (!s) return;
+  const {idx} = nearestLineIndex(s.lat, s.lng);
+  document.getElementById('idxSlider').value = idx;
+  document.getElementById('idxLabel').textContent = 'idx ' + idx;
+}
+
+document.getElementById('idxSlider').oninput = (e) => {
+  const idx = parseInt(e.target.value);
+  document.getElementById('idxLabel').textContent = 'idx ' + idx;
+  const s = stops.find(s => s.id === selectedStopId);
+  const p = racingLine[idx];
+  s.lat = p[0]; s.lng = p[1];
+  stopMarkers[stops.indexOf(s)].setLatLng(p);
+};
+
+document.getElementById('modeAdd').onclick = () => {
+  mode = mode === 'add' ? null : 'add';
+  document.getElementById('modeAdd').classList.toggle('on', mode==='add');
+  document.getElementById('modeDelete').classList.remove('on');
+  setStatus(mode==='add' ? 'Click the map to add a point.' : '');
+};
+document.getElementById('modeDelete').onclick = () => {
+  mode = mode === 'delete' ? null : 'delete';
+  document.getElementById('modeDelete').classList.toggle('on', mode==='delete');
+  document.getElementById('modeAdd').classList.remove('on');
+  setStatus(mode==='delete' ? 'Click a small dot to delete it.' : '');
+};
+map.on('click', (e) => {
+  if (mode !== 'add') return;
+  let bestSeg = 0, bestD = Infinity;
+  for (let i = 0; i < racingLine.length - 1; i++) {
+    const mid = [(racingLine[i][0]+racingLine[i+1][0])/2, (racingLine[i][1]+racingLine[i+1][1])/2];
+    const d = hav([e.latlng.lat, e.latlng.lng], mid);
+    if (d < bestD) { bestD = d; bestSeg = i; }
+  }
+  racingLine.splice(bestSeg+1, 0, [e.latlng.lat, e.latlng.lng]);
+  redrawLine();
+  rebuildLineMarkers();
+  setStatus('Added line point at index ' + (bestSeg+1));
+});
+
+function generateExport() {
+  const cum = [0];
+  for (let i = 1; i < racingLine.length; i++) cum[i] = cum[i-1] + hav(racingLine[i-1], racingLine[i]);
+
+  const rlLines = [];
+  for (let i = 0; i < racingLine.length; i += 6) {
+    const chunk = racingLine.slice(i, i+6).map(p => `[${p[0]},${p[1]}]`).join(',');
+    rlLines.push('  ' + chunk + ',');
+  }
+  let rlText = 'const racingLine = [\n' + rlLines.join('\n') + '\n];';
+  rlText = rlText.replace(/,\n\];/, '\n];');
+
+  const stopsText = stops.map(s => {
+    const {idx} = nearestLineIndex(s.lat, s.lng);
+    const dist = (cum[idx]/1000).toFixed(2);
+    return `  // ${s.label} (${s.name}): ...rl(${idx}), dist:'${dist}'`;
+  }).join('\n');
+
+  return rlText + '\n\n// Replace each stop\'s ...rl(N) and dist with the matching line below:\n' + stopsText;
+}
+
+document.getElementById('exportBtn').onclick = () => { document.getElementById('exportBox').value = generateExport(); };
+document.getElementById('copyBtn').onclick = () => {
+  const box = document.getElementById('exportBox');
+  box.select();
+  document.execCommand('copy');
+  setStatus('Copied to clipboard.');
+};
+
+document.getElementById('loadBtn').onclick = () => loadCircuit(sel.value);
+
+// auto-load the first circuit on open
+loadCircuit(sel.value);
+</script>
+</body>
+</html>
