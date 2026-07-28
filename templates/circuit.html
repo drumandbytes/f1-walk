@@ -275,7 +275,9 @@ html, body { height: 100%; font-family: 'Helvetica Neue', Arial, sans-serif; bac
         <div class="help-body">
           <p>{{HELP_OFFLINE_NOTE}}</p>
           <p>GPS itself doesn't require internet — your device's location hardware works independently of mobile data.</p>
-          <p>Map tiles you've already viewed are cached. Pan and zoom around the circuit while online to pre-cache the areas you'll walk.</p>
+          <p>Map tiles you've already viewed are cached automatically, or download the whole route now while you have signal:</p>
+          <p><button class="topbar-btn" id="preload-btn" onclick="preloadTiles()" style="width:100%;justify-content:center;">Download map for offline use</button></p>
+          <p id="preload-progress" style="text-align:center;color:#666;"></p>
         </div>
       </div>
 
@@ -341,7 +343,7 @@ html, body { height: 100%; font-family: 'Helvetica Neue', Arial, sans-serif; bac
 function rl(n) { const p = racingLine[n] ?? racingLine[0]; return { lat: p[0], lng: p[1] }; }
 
 const ACCENT = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
-let activeIdx=0, map, markers=[];
+let activeIdx=0, map, markers=[], circuitBounds;
 let autoAdvance=true;
 let gpsActive=false, gpsWatchId=null, gpsMarker=null, gpsAccCircle=null;
 let panelCollapsed=false;
@@ -357,6 +359,12 @@ sectors.forEach(s => {
 function initMap() {
   map = L.map("map", {center:SF_POS, zoom:15, zoomControl:true, attributionControl:false});
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {maxZoom:20, maxNativeZoom:19}).addTo(map);
+
+  // Keep the map focused on the circuit rather than letting it pan/zoom out
+  // to the whole city — avoids caching (and mobile-data-roaming) tiles the
+  // walk never needs.
+  circuitBounds = L.latLngBounds(racingLine).pad(0.25);
+  map.setMaxBounds(circuitBounds);
   L.polyline(racingLine, {color:ACCENT, weight:5, opacity:0.85, lineJoin:"round", lineCap:"round", smoothFactor:1}).addTo(map);
   L.polyline(racingLine, {color:"#fff", weight:1, opacity:0.12, dashArray:"3 16", smoothFactor:1}).addTo(map);
 
@@ -494,6 +502,61 @@ function haversine(lat1,lng1,lat2,lng2) {
   const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
   return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
+
+// ── OFFLINE TILE PRELOAD ────────────────────────────────────────
+// Fetches every map tile covering the circuit at the zoom levels the app
+// actually uses (15-17), so a visitor can download the whole route on wifi
+// before losing signal, instead of relying on whatever tiles happened to be
+// on screen while panning around. The service worker already caches any
+// tile.openstreetmap.org fetch (see sw.js), so a plain fetch() per tile is
+// all that's needed here.
+function tileXY(lat, lng, zoom) {
+  const n = Math.pow(2, zoom);
+  const x = Math.floor((lng + 180) / 360 * n);
+  const rad = lat * Math.PI / 180;
+  const y = Math.floor((1 - Math.log(Math.tan(rad) + 1/Math.cos(rad)) / Math.PI) / 2 * n);
+  return [x, y];
+}
+let preloadRunning = false;
+async function preloadTiles() {
+  if (preloadRunning) return;
+  preloadRunning = true;
+  const btn = document.getElementById('preload-btn');
+  const progress = document.getElementById('preload-progress');
+  const bounds = circuitBounds;
+  const sw = bounds.getSouthWest(), ne = bounds.getNorthEast();
+  const ZOOMS = [15, 16, 17];
+  const subs = ['a','b','c'];
+  const urls = [];
+  ZOOMS.forEach(z => {
+    const [x0, y1] = tileXY(sw.lat, sw.lng, z);
+    const [x1, y0] = tileXY(ne.lat, ne.lng, z);
+    for (let x = Math.min(x0,x1); x <= Math.max(x0,x1); x++) {
+      for (let y = Math.min(y0,y1); y <= Math.max(y0,y1); y++) {
+        const s = subs[(x+y) % subs.length];
+        urls.push(`https://${s}.tile.openstreetmap.org/${z}/${x}/${y}.png`);
+      }
+    }
+  });
+  let done = 0, failed = 0;
+  btn.disabled = true;
+  const CONCURRENCY = 6;
+  const totalTiles = urls.length;
+  async function worker() {
+    while (urls.length) {
+      const url = urls.shift();
+      try { await fetch(url); } catch(e) { failed++; }
+      done++;
+      progress.textContent = `${done} / ${totalTiles}`;
+    }
+  }
+  progress.textContent = `0 / ${totalTiles}`;
+  await Promise.all(Array.from({length: CONCURRENCY}, worker));
+  progress.textContent = failed ? `Done (${failed} tiles failed — try again if offline use seems incomplete)` : `Done — ${totalTiles} tiles cached`;
+  btn.disabled = false;
+  preloadRunning = false;
+}
+window.preloadTiles = preloadTiles;
 
 function toggleHelp(btn) {
   const body = btn.nextElementSibling;
