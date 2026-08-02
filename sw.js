@@ -1,5 +1,11 @@
-const CACHE = 'monaco-walk-v2';
-const TILE_CACHE = 'monaco-tiles-v1';
+const CACHE = 'circuit-walk-v3';
+const TILE_CACHE = 'circuit-tiles-v2';
+// Tiles explicitly downloaded via each circuit's "Download map for offline
+// use" button live here instead, and are never evicted by limitTileCache --
+// only tiles seen incidentally while panning/zooming go through the capped
+// general TILE_CACHE below. Corridor preloads across all 5 circuits total
+// well under 1000 tiles combined, so this cache isn't capped.
+const PRIORITY_TILE_CACHE = 'circuit-tiles-priority-v1';
 const MAX_TILE_CACHE = 1000;
 const SHELL = [
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
@@ -19,7 +25,7 @@ self.addEventListener('activate', e => {
     caches.keys().then(keys =>
       Promise.all(
         keys
-          .filter(k => k !== CACHE && k !== TILE_CACHE)
+          .filter(k => k !== CACHE && k !== TILE_CACHE && k !== PRIORITY_TILE_CACHE)
           .map(k => caches.delete(k))
       )
     ).then(() => self.clients.claim())
@@ -39,14 +45,17 @@ self.addEventListener('fetch', e => {
 
   if (url.hostname.endsWith('tile.openstreetmap.org')) {
     e.respondWith(
-      caches.open(TILE_CACHE).then(async cache => {
+      caches.open(PRIORITY_TILE_CACHE).then(async priorityCache => {
+        const priorityHit = await priorityCache.match(e.request);
+        if (priorityHit) return priorityHit;
+
+        const cache = await caches.open(TILE_CACHE);
         const cached = await cache.match(e.request);
         if (cached) return cached;
         try {
           const res = await fetch(e.request);
           if (res.ok) {
-            cache.put(e.request, res.clone());
-            limitTileCache(cache);
+            e.waitUntil(cache.put(e.request, res.clone()).then(() => limitTileCache(cache)));
           }
           return res;
         } catch {
@@ -62,7 +71,8 @@ self.addEventListener('fetch', e => {
       fetch(e.request)
         .then(res => {
           if (res.ok) {
-            caches.open(CACHE).then(c => c.put(e.request, res.clone()));
+            const resClone = res.clone();
+            e.waitUntil(caches.open(CACHE).then(c => c.put(e.request, resClone)));
           }
           return res;
         })
@@ -72,6 +82,15 @@ self.addEventListener('fetch', e => {
   }
 
   e.respondWith(
-    caches.match(e.request).then(cached => cached || fetch(e.request))
+    caches.match(e.request).then(cached => {
+      if (cached) return cached;
+      return fetch(e.request).then(res => {
+        if (res.ok) {
+          const resClone = res.clone();
+          e.waitUntil(caches.open(CACHE).then(c => c.put(e.request, resClone)));
+        }
+        return res;
+      });
+    })
   );
 });

@@ -56,7 +56,7 @@ const stops = [
     ...rl(0), sector:0, speed:null, gear:null, dist:'0.00',
     desc:'Neftchilar Avenue, on the Caspian seafront — this is also part of the longest straight in Formula 1, so cars are already at very high speed as they cross the line.',
     facts:[
-      {icon:'🏁',tag:'fact',title:'6.003 km, 20 corners',text:'Baku City Circuit is <strong>6.003 km</strong> long with <strong>20 turns</strong> — the second-longest circuit on the F1 calendar. First held in 2016 as the European Grand Prix, it became the Azerbaijan Grand Prix from 2017.'},
+      {icon:'🏁',tag:'fact',title:'6.003 km, 20 corners',text:'Baku City Circuit is <strong>6.003 km</strong> long with <strong>20 turns</strong> — the fourth-longest circuit on the F1 calendar, behind Spa, Las Vegas, and Jeddah. First held in 2016 as the European Grand Prix, it became the Azerbaijan Grand Prix from 2017.'},
       {icon:'🏙',tag:'fact',title:'A circuit through a capital city',text:'The track runs along the Caspian Sea seafront and through the walled <strong>Old City (Icherisheher)</strong>, a UNESCO World Heritage Site, before opening onto the longest straight in Formula 1.'},
       {icon:'⚙️',tag:'record',title:'Most gear changes of any circuit',text:'Drivers make <strong>71 gear changes per lap</strong> here — more than anywhere else on the 2025 calendar, a product of swinging between hairpin-tight corners and flat-out straights.'},
     ]},
@@ -64,7 +64,7 @@ const stops = [
     ...rl(6), sector:1, speed:120, gear:2, dist:'0.18',
     desc:'A 90-degree left-hander, heavy on the brakes at the end of the long start/finish straight.',
     facts:[
-      {icon:'📏',tag:'record',title:'Second-shortest run to Turn 1',text:"At <strong>170 metres</strong> from the line, this is the second-shortest sprint to the first corner on the F1 calendar — behind only Monaco's Sainte Dévote."},
+      {icon:'📏',tag:'fact',title:'One of the shortest sprints to Turn 1',text:"Cars are hard on the brakes for this 90-degree left within seconds of the start — one of the shortest runs from the line to a first corner anywhere on the calendar."},
       {icon:'🏆',tag:'overtake',title:'2024 — Piastri takes the lead',text:"On lap 20, <strong>Oscar Piastri</strong> swooped past <strong>Charles Leclerc</strong> into Turn 1 for the race lead, going on to win — McLaren's first Baku victory, and a result that put them top of the Constructors' Championship for the first time since 2014."},
       {icon:'💥',tag:'crash',title:'2018 — Red Bulls collide',text:"On lap 40, <strong>Daniel Ricciardo</strong> ran into the back of team-mate <strong>Max Verstappen</strong> here while trying to pass, putting both Red Bulls out of the race. It was their third coming-together of the afternoon — Christian Horner reprimanded both drivers afterwards."},
       {icon:'💥',tag:'crash',title:"2021 — Hamilton's late-race mistake",text:"Fighting for the win on a late restart, <strong>Lewis Hamilton</strong> accidentally hit his 'brake magic' button, altering his brake balance, and missed the braking point here — ending a run of 55 consecutive points finishes."},
@@ -74,6 +74,7 @@ const stops = [
     desc:'Another 90-degree left, straight off the back of Turn 1, leading onto the first DRS straight.',
     facts:[
       {icon:'💥',tag:'crash',title:'2025 — Bearman clips the wall',text:"<strong>Oliver Bearman's</strong> rear end stepped out exiting Turn 2 in Q2, striking the barrier — one of a record six red flags across that qualifying session, the most in F1 history."},
+      {icon:'📖',tag:'fact',title:"A Russian poet's monument on this street",text:"This corner turns onto <strong>Pushkin Street</strong>, home to a monument of the Russian poet unveiled in 2001 as a gift from Russia marking the 10th anniversary of Azerbaijan's independence — sculpted by Yuri Orekhov, his final work."},
     ]},
   { id:3, label:'T3', name:'Turn 3',
     ...rl(40), sector:1, speed:100, gear:2, dist:'1.38',
@@ -94,6 +95,7 @@ const stops = [
     desc:'A left-hander, immediately compromised by the switchback that follows at Turn 6.',
     facts:[
       {icon:'💥',tag:'crash',title:'2023 — Leclerc crashes, still takes pole',text:"<strong>Charles Leclerc</strong> locked up and crashed out here on his final lap of the Sprint Shootout — and still secured pole position."},
+      {icon:'🎭',tag:'fact',title:"A museum of Azerbaijani theatre",text:"The road here runs past the <strong>Azerbaijan State Theatre Museum</strong>, founded in 1934 and later named for playwright Jafar Jabbarli — its archive holds around 135,000 items, from costumes and set designs to the private papers of 700 theatre figures."},
     ]},
   { id:6, label:'T6', name:'Turn 6',
     ...rl(60), sector:1, speed:95, gear:2, dist:'2.00',
@@ -106,6 +108,7 @@ const stops = [
     desc:'An acute right-hander as the track tightens further — tricky in low sun.',
     facts:[
       {icon:'💥',tag:'crash',title:'2025 — Albon collects Colapinto',text:"On lap 17, <strong>Alexander Albon</strong> hit the rear of <strong>Franco Colapinto's</strong> car here, spinning him and bringing out the safety car. Albon was handed a 10-second penalty."},
+      {icon:'🎪',tag:'fact',title:'A cinema turned puppet theatre',text:"This corner passes the <strong>Puppet Theatre</strong>, built in 1910 as the 'Phenomenon' cinema by Polish architect Józef Płoszko, rebuilt in 1921, and reopened as a children's puppet theatre in 1931 — its first show was, fittingly, called 'Circus'."},
     ]},
   { id:8, label:'T8', name:'Turn 8',
     ...rl(79), sector:2, speed:115, gear:2, dist:'2.59',
@@ -137,12 +140,14 @@ const stops = [
     desc:'A 90-degree left with room on exit, leading to the highest point on the circuit.',
     facts:[
       {icon:'⛰',tag:'record',title:'Highest point on the circuit',text:'Turn 12 leads to the highest elevation point of the lap, after the climb through the castle section.'},
+      {icon:'📚',tag:'fact',title:'From caravanserai to literature museum',text:"This corner passes the <strong>Nizami Museum of Azerbaijani Literature</strong>, honouring the 12th-century Persian poet Nizami Ganjavi. The building started as an 1850 caravanserai, became the Metropol Hotel in 1915, and briefly housed Azerbaijan's first government (1918–1920) before its 1939 founding as a museum."},
     ]},
   { id:13, label:'T13', name:'Turn 13',
     ...rl(103), sector:2, speed:265, gear:8, dist:'3.16',
     desc:'The first of two left-hand kinks taken flat out, crossing the crest of the hill.',
     facts:[
       {icon:'💥',tag:'crash',title:"2023 — Tsunoda's rough sprint",text:"<strong>Yuki Tsunoda</strong> hit the wall here during the 2023 sprint race, stripping his rear-left tyre. He retired the following lap after an unsafe pit release."},
+      {icon:'💒',tag:'fact',title:'A palace built for love',text:"This corner passes the <strong>Palace of Happiness</strong>, a French Gothic mansion built in 1911–12 by oil baron Murtuza Mukhtarov as a surprise gift for his wife, who had admired similar architecture in Europe. It's been Baku's marriage registry since Soviet times."},
     ]},
   { id:14, label:'T14', name:'Turn 14',
     ...rl(109), sector:2, speed:295, gear:8, dist:'3.37',
@@ -155,12 +160,14 @@ const stops = [
     desc:'Hard on the brakes as the track drops downhill into this left-hander — the exit wall here punishes any mistake.',
     facts:[
       {icon:'💥',tag:'crash',title:"Baku's most-crashed corner",text:"This downhill braking zone has claimed cars in practice sessions across multiple years: <strong>Daniel Ricciardo</strong> and <strong>Felipe Massa</strong> in 2016, and both <strong>Charles Leclerc</strong> and <strong>Max Verstappen</strong> in 2021."},
+      {icon:'🎼',tag:'fact',title:'A concert hall inspired by Monte Carlo',text:"This corner passes the <strong>Azerbaijan State Philharmonic Hall</strong>, built in 1910–12 with a design inspired by Monte Carlo's Opera House and Casino — home turf for this app's original circuit. It was renamed in 1937 for composer Muslim Magomayev."},
     ]},
   { id:16, label:'T16', name:'Turn 16',
     ...rl(126), sector:3, speed:130, gear:3, dist:'3.94',
     desc:'A fast left-hander that feeds the circuit onto the long run back to the start/finish line.',
     facts:[
       {icon:'🏎',tag:'fact',title:'A big kerb before the longest run',text:"The large exit kerb here can destabilise the car right before the longest full-throttle section of the lap, roughly 1.5 miles (2.4 km) of flat-out running."},
+      {icon:'🎸',tag:'fact',title:'A concert hall shaped like an instrument',text:"Nearby stands the <strong>International Mugham Center</strong>, opened in 2008 and designed around the shape of the tar — the long-necked lute used to perform mugham, the improvised Azerbaijani musical art form recognised by UNESCO as part of humanity's Intangible Cultural Heritage."},
     ]},
   { id:17, label:'T17', name:'Turn 17',
     ...rl(133), sector:3, speed:215, gear:6, dist:'4.14',
@@ -178,7 +185,8 @@ const stops = [
     ...rl(144), sector:3, speed:290, gear:8, dist:'4.52',
     desc:'The penultimate kink of the slalom, cars already carrying huge speed.',
     facts:[
-      {icon:'⚡',tag:'record',title:'F1\'s fastest recorded speed',text:'A Baku speed trap recorded <strong>378 km/h (235 mph)</strong> in 2016 — the fastest speed ever recorded in a Formula 1 race.'},
+      {icon:'⚡',tag:'record',title:"An unofficial F1 speed record",text:"In 2016 qualifying, <strong>Williams'</strong> own telemetry showed <strong>Valtteri Bottas</strong> hitting <strong>378 km/h (235 mph)</strong> here — the highest speed ever claimed for an F1 car. It's never been official, though: the FIA's own speed trap at this exact spot read a lower 366 km/h for the same lap."},
+      {icon:'🎤',tag:'fact',title:"A grandson's tribute to a legend",text:"This corner runs past a bronze statue of <strong>Muslim Magomayev</strong>, the Azerbaijani-Soviet singer sometimes called the Soviet Sinatra, unveiled in 2022 — decades after the Philharmonic Hall passed at Turn 15 was renamed for his grandfather and namesake, composer Muslim Magomayev."},
     ]},
   { id:20, label:'T20', name:'Turn 20',
     ...rl(154), sector:3, speed:310, gear:8, dist:'4.89',

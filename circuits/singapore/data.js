@@ -51,6 +51,18 @@ const racingLine = [
 
 const SF_POS = [1.291728, 103.864144];
 
+// speed/gear: real minimum corner speeds (km/h) from Wikipedia's "A lap in a
+// Formula One car" section for Marina Bay Street Circuit, kept ONLY where a
+// unique landmark ties the sentence unambiguously to one of our numbered
+// corners (T1 left-hander, T12 Anderson Bridge, T13 Fullerton Hotel hairpin,
+// T18/19 past the Singapore Flyer, etc.) -- 12 of 19 corners qualify. The
+// rest of that Wikipedia section turned out to be an older, not fully
+// renumbered narrative (e.g. it calls Turn 2 a right-hander, but our
+// geometry-verified data has T2 as a left curve), so T2, T4, T11, T14, T15,
+// T16 and T17 are left as null rather than risk attaching a real number to
+// the wrong corner. Gear is derived from speed using the same speed-to-gear
+// bands observed across this app's other circuits (Monaco/Baku), e.g.
+// ~140-160 km/h -> gear 4, ~160-225 -> gear 5, 300+ -> gear 8.
 const stops = [
   { id:0, label:'S/F', name:'Start / Finish Line', isSF:true,
     ...rl(0), sector:0, speed:null, gear:null, dist:'0.00',
@@ -61,47 +73,65 @@ const stops = [
       {icon:'💥',tag:'crash',title:'2008 — "Crashgate"',text:"F1's most notorious scandal happened here in the circuit's very first race: Renault ordered Nelson Piquet Jr. to crash deliberately, triggering a safety car that handed team-mate Fernando Alonso the win. It happened at the old Turn 17 — part of the waterfront section demolished in the 2023 rebuild, so the exact spot no longer exists on today's track."},
     ]},
   { id:1, label:'T1', name:'Sheares',
-    ...rl(9), sector:0, speed:null, gear:null, dist:'0.30',
+    ...rl(9), sector:0, speed:146, gear:4, dist:'0.30',
     desc:'A tight left-hander right after the start/finish straight — the first braking test of the lap.',
     facts:[
-      {icon:'👑',tag:'fact',title:"Named after Singapore's first president",text:"This corner is informally known as <strong>Sheares</strong>, after Benjamin Henry Sheares, Singapore's second president — one of the few Marina Bay corners with a real name rather than just a number."},
+      {icon:'👑',tag:'fact',title:"Named after Singapore's second president",text:"This corner is informally known as <strong>Sheares</strong>, after Benjamin Henry Sheares, Singapore's second president — one of the few Marina Bay corners with a real name rather than just a number."},
+      {icon:'🌉',tag:'fact',title:"Singapore's longest, tallest bridge",text:"The <strong>Benjamin Sheares Bridge</strong> looms right over the start of the lap — 1.8 km long and 29 m tall, still Singapore's longest and tallest bridge since it opened in 1981, four months after the president it's named for died in office. It even appears on the S$50 banknote."},
     ]},
   { id:2, label:'T2', name:'Turn 2',
     ...rl(12), sector:0, speed:null, gear:null, dist:'0.36',
     desc:'A longer left curve, feeding into the T3 hairpin.',
-    facts:[]},
+    facts:[
+      {icon:'🏆',tag:'overtake',title:'2025 — Setting up a title-fight flashpoint',text:"On the opening lap of the 2025 race, <strong>Lando Norris</strong> pulled alongside team-mate Oscar Piastri through this corner, setting up the lunge at the following hairpin where he clipped Max Verstappen and collected his own team-mate."},
+    ]},
   { id:3, label:'T3', name:'Turn 3',
-    ...rl(18), sector:0, speed:null, gear:null, dist:'0.44',
+    ...rl(18), sector:0, speed:90, gear:2, dist:'0.44',
     desc:'A left-handed hairpin, heavy on the brakes.',
-    facts:[]},
+    facts:[
+      {icon:'💥',tag:'crash',title:'2025 — Norris, Verstappen, and his own team-mate',text:"Coming out of Turn 2 alongside team-mate Oscar Piastri, <strong>Lando Norris</strong> launched a lap-one move here in 2025, clipped Max Verstappen, and was sent into Piastri — advancing ahead of his own team-mate in the process. Stewards ruled it a racing incident."},
+    ]},
   { id:4, label:'T4', name:'Turn 4',
     ...rl(24), sector:0, speed:null, gear:null, dist:'0.57',
     desc:'A right-hand kink as the track joins Republic Boulevard.',
-    facts:[]},
+    facts:[
+      {icon:'💥',tag:'crash',title:'2022 — Latifi and Zhou collide',text:"Fighting over 18th place on lap 7 of 2022, <strong>Nicholas Latifi</strong> and <strong>Zhou Guanyu</strong> came together side-by-side into this corner, ending both their races on the spot. Latifi picked up a five-place grid penalty for the following round."},
+    ]},
   { id:5, label:'T5', name:'Turn 5',
-    ...rl(35), sector:0, speed:null, gear:null, dist:'0.85',
+    ...rl(35), sector:0, speed:145, gear:4, dist:'0.85',
     desc:"A long left-hander leading onto one of the circuit's DRS straights.",
-    facts:[]},
+    facts:[
+      {icon:'🧱',tag:'crash',title:"2022 — The wall claims its first victim",text:"During first practice in 2022, <strong>Lance Stroll</strong> clipped the barrier on the exit of this corner and broke his rear suspension — the first crash of that race weekend."},
+    ]},
   { id:6, label:'T6', name:'Turn 6',
-    ...rl(48), sector:0, speed:null, gear:null, dist:'1.30',
+    ...rl(48), sector:0, speed:320, gear:8, dist:'1.30',
     desc:'A right-hand kink before the run toward the bridge section.',
-    facts:[]},
+    facts:[
+      {icon:'⛲',tag:'fact',title:'Racing past a Guinness World Record',text:"This kink runs along Raffles Boulevard, right past <strong>Suntec City</strong> — its five towers and central Fountain of Wealth are laid out in the shape of an open hand under feng shui principles, and the fountain held the Guinness World Record for the largest fountain from 1998."},
+    ]},
   { id:7, label:'T7', name:'Memorial Corner',
-    ...rl(59), sector:0, speed:null, gear:null, dist:'1.67',
+    ...rl(59), sector:0, speed:127, gear:3, dist:'1.67',
     desc:'A left-hander near the old War Memorial Park — a prime braking and overtaking zone.',
     facts:[
       {icon:'🏆',tag:'overtake',title:'A DRS overtaking zone',text:"Most passing moves into this corner come with DRS help on the long run beforehand — one of the circuit's more reliable overtaking spots despite its reputation as a street track where passing is hard."},
+      {icon:'🚧',tag:'fact',title:'The 2004 Nicoll Highway collapse',text:"The track joins <strong>Nicoll Highway</strong> just after this corner — site of a fatal 2004 MRT tunnel construction collapse that killed four workers and swallowed a 100m stretch of the road, one of Singapore's worst construction disasters."},
     ]},
   { id:8, label:'T8', name:'Stamford',
-    ...rl(68), sector:0, speed:null, gear:null, dist:'1.89',
+    ...rl(68), sector:0, speed:81, gear:2, dist:'1.89',
     desc:'A right-hander onto Stamford Road.',
-    facts:[]},
+    facts:[
+      {icon:'💥',tag:'crash',title:"2022 — Albon's race ends in the wall",text:"On lap 7 of the 2022 race, <strong>Alexander Albon</strong> slid into the barrier here and damaged his Williams beyond repair, ending his race on the spot. He admitted afterward it was his own mistake."},
+      {icon:'📜',tag:'fact',title:'Founded it, barely visited it',text:"This corner runs onto <strong>Stamford Road</strong>, named for Sir Stamford Raffles — credited as Singapore's founder despite his longest single stay on the island being just eight months, across a handful of visits between 1819 and 1823."},
+    ]},
   { id:9, label:'T9', name:'Padang',
-    ...rl(75), sector:0, speed:null, gear:null, dist:'2.10',
+    ...rl(75), sector:0, speed:140, gear:4, dist:'2.10',
     desc:'A sweeping left, taken flat out in qualifying trim.',
-    facts:[]},
+    facts:[
+      {icon:'🏛',tag:'fact',title:'Racing past a National Monument',text:"The straight after this corner runs in front of the <strong>Padang</strong> — one of Singapore's oldest open spaces, used for recreation since the 1830s and gazetted a National Monument in 2022. It's hosted National Day Parades since 1966."},
+      {icon:'⛈️',tag:'fact',title:'Struck by lightning, twice',text:"This straight also runs past <strong>St Andrew's Cathedral</strong> — its first building was struck by lightning twice (1845 and 1849), declared unsafe, and demolished. The current Neo-Gothic cathedral, consecrated in 1862, has been a National Monument since 1973."},
+    ]},
   { id:10, label:'T10', name:'Singapore Sling',
-    ...rl(90), sector:0, speed:null, gear:null, dist:'2.55',
+    ...rl(90), sector:0, speed:150, gear:4, dist:'2.55',
     desc:'Once a vicious triple-apex chicane, simplified to a single left-hander since 2013.',
     facts:[
       {icon:'📏',tag:'record',title:'The old "Singapore Sling"',text:"This was once the <strong>Singapore Sling</strong>, a brutal triple-apex chicane with kerbs so aggressive they wrecked cars in the circuit's very first race in 2008. It was simplified to a single corner in 2013."},
@@ -110,27 +140,35 @@ const stops = [
   { id:11, label:'T11', name:'Turn 11',
     ...rl(97), sector:0, speed:null, gear:null, dist:'2.69',
     desc:'A fast right, funnelling the car toward Anderson Bridge.',
-    facts:[]},
+    facts:[
+      {icon:'🏨',tag:'fact',title:'Named after a colonial Governor',text:"This corner runs along <strong>Fullerton Road</strong>, named after Robert Fullerton, the first Governor of the Straits Settlements (1826–30). The road passes the former Fullerton Building — once Singapore's General Post Office, now the Fullerton Hotel."},
+    ]},
   { id:12, label:'T12', name:'Turn 12',
-    ...rl(100), sector:0, speed:null, gear:null, dist:'2.72',
+    ...rl(100), sector:0, speed:190, gear:5, dist:'2.72',
     desc:'The left onto Anderson Bridge itself, taken at high speed.',
     facts:[
       {icon:'🌉',tag:'fact',title:'A century-old bridge, at 190 km/h',text:"Anderson Bridge opened in 1910 to relieve traffic on the older Cavenagh Bridge next door. Once a year, F1 cars cross it at around <strong>190 km/h</strong>."},
+      {icon:'🗿',tag:'fact',title:"A statue disguised for its own bicentennial",text:"Near this stretch stands a white replica of the <strong>Raffles Landing Site</strong> statue, marking where Stamford Raffles is said to have stepped ashore in 1819. For Singapore's 2019 bicentennial, it was briefly camouflaged into the skyline behind it — meant to spark conversation about the country's history rather than simply celebrate it."},
     ]},
   { id:13, label:'T13', name:'Turn 13',
-    ...rl(112), sector:0, speed:null, gear:null, dist:'2.96',
+    ...rl(112), sector:0, speed:67, gear:2, dist:'2.96',
     desc:'A tight hairpin over the far side of Anderson Bridge — narrow, bumpy, and a serious traction test.',
     facts:[
       {icon:'🏃',tag:'fact',title:'2015 — A spectator on the track',text:"During a safety car period in 2015, a spectator squeezed through a gap in the fencing near here and ran onto the circuit before being arrested — a rare full track invasion during an active F1 session."},
+      {icon:'🏨',tag:'fact',title:'Post office, war HQ, then hotel',text:"The <strong>Fullerton Hotel</strong> right beside this hairpin opened in 1928 as Singapore's General Post Office, became the Japanese military administration's headquarters during WWII, and wasn't converted into a luxury hotel until a roughly S$300 million restoration completed in 2000."},
     ]},
   { id:14, label:'T14', name:'Connaught',
     ...rl(130), sector:0, speed:null, gear:null, dist:'3.50',
     desc:'A right-hander onto Esplanade Drive.',
-    facts:[]},
+    facts:[
+      {icon:'👑',tag:'fact',title:'Named for a royal visit',text:"This corner is named <strong>Connaught</strong> after Connaught Drive, laid out along the reclaimed seafront and named to commemorate an 1890 visit by Prince Arthur, Duke of Connaught — he and his wife were the very first to use the new road."},
+    ]},
   { id:15, label:'T15', name:'Turn 15',
     ...rl(138), sector:0, speed:null, gear:null, dist:'3.73',
     desc:'A left across the Esplanade Bridge, leading onto the new back straight.',
-    facts:[]},
+    facts:[
+      {icon:'🦁',tag:'fact',title:'The bridge that moved a national icon',text:"This bridge opened in 1997 — and blocked the view of Singapore's famous <strong>Merlion</strong> statue from the bay, so the Merlion itself was relocated to the front of the bridge to stay visible."},
+    ]},
   { id:16, label:'T16', name:'Turn 16',
     ...rl(153), sector:0, speed:null, gear:null, dist:'4.24',
     desc:'A sharp right — the start of the section rebuilt for 2023, replacing the old waterfront corners.',
@@ -140,15 +178,21 @@ const stops = [
   { id:17, label:'T17', name:'Turn 17',
     ...rl(158), sector:0, speed:null, gear:null, dist:'4.31',
     desc:'A left into the final sequence, onto Raffles Avenue.',
-    facts:[]},
+    facts:[
+      {icon:'💥',tag:'crash',title:"2025 — Lawson's double practice shunt",text:"In second practice for the 2025 race, <strong>Liam Lawson</strong> took too much kerb at Turn 16, was bounced left, then clipped the kerb again here and slammed into the wall — tearing off his front-right tyre and triggering a red flag."},
+    ]},
   { id:18, label:'T18', name:'Turn 18',
-    ...rl(167), sector:0, speed:null, gear:null, dist:'4.59',
+    ...rl(167), sector:0, speed:180, gear:5, dist:'4.59',
     desc:'A sharp left, one of the trickiest late-lap braking zones.',
-    facts:[]},
+    facts:[
+      {icon:'🎡',tag:'fact',title:'The wheel that got turned around',text:"This corner curves around the base of the <strong>Singapore Flyer</strong>. Months after it opened in 2008, the giant wheel's rotation was reversed on the advice of feng shui masters, worried the original direction was spinning the nation's fortune out to sea."},
+    ]},
   { id:19, label:'T19', name:'Turn 19',
-    ...rl(174), sector:0, speed:null, gear:null, dist:'4.71',
+    ...rl(174), sector:0, speed:180, gear:5, dist:'4.71',
     desc:'The final corner, a right-hander back onto the start/finish straight.',
-    facts:[]},
+    facts:[
+      {icon:'💥',tag:'crash',title:"2024 — Sainz's pole bid ends in the wall",text:"In Q3 of 2024 qualifying, <strong>Carlos Sainz</strong> lost the rear and slammed into the wall at this, the final corner, bringing out the red flags and handing pole to Lando Norris."},
+    ]},
 ];
 
 const sectors = [

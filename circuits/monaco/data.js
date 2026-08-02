@@ -175,6 +175,7 @@ const stops = [
     desc:"Right-hander of the Piscine chicane. The entire Piscine section was added in 1973 when Monaco completed harbour land reclamation — before then, cars took a completely different route back from Tabac.",
     facts:[
       {icon:"📅",tag:"fact",title:"Added in 1973",text:"The Piscine section was <strong>added in 1973</strong> along with La Rascasse, after Monaco's harbour reclamation was complete. It added 0.133 km to the circuit and gave the lap its current character."},
+      {icon:"⛸️",tag:"fact",title:"A pool that becomes an ice rink",text:"The <strong>Rainier III Nautical Stadium</strong> alongside this corner is a heated, saltwater Olympic pool with diving platforms up to 10m and a 45m slide — every winter, from December to March, it's drained and converted into a 1,000 m² ice rink."},
     ]},
   { id:16, label:"T16", name:"Piscine — Left",
     ...rl(101), sector:3, speed:120, gear:3, dist:"2.90",

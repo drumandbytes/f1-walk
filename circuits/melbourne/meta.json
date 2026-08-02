@@ -1,0 +1,27 @@
+{
+  "title": "Melbourne GP Circuit Walk",
+  "publishedTime": "2026-08-01T09:00:00+00:00",
+  "ogTitle": "Melbourne GP Circuit Walk — Albert Park Guide",
+  "ogDescription": "Walk all 14 corners of the Albert Park Circuit around Albert Park Lake, with GPS tracking, historical facts, and offline maps. Free, no tracking.",
+  "canonicalUrl": "https://f1walk.drumandbytes.dev/melbourne",
+  "ogImage": "https://f1walk.drumandbytes.dev/melbourne/preview.png",
+  "ogImageAlt": "Melbourne GP Circuit Walk — circuit outline on dark background",
+  "twitterTitle": "Melbourne GP Circuit Walk — Albert Park Guide",
+  "twitterDescription": "Walk all 14 corners of the Albert Park Circuit around Albert Park Lake, with GPS tracking, historical facts, and offline maps.",
+  "themeColor": "#16a34a",
+  "appleTitle": "Melbourne Walk",
+  "stopCountLabel": "15 stops",
+  "aboutStory": "        <p>Built the same way as the Singapore and Las Vegas guides — researched remotely using public GPS data, race reports, and Wikipedia, not walked in person.</p>\n        <p>Albert Park is a public park that stays open to walkers, joggers, and cyclists all year — it only closes for the race weekend. The 2022 layout change (removing the Turn 9/10 chicane) shifted every corner number after it down by two, which took real care to get right using an independent source confirming the old-to-new mapping.</p>\n        <p>Treat it as a work in progress rather than ground truth, and if you walk it yourself, corrections and reports are very welcome.</p>",
+  "helpSubtitle": "Fan-made walking guide — S/F line + all 14 corners of the Albert Park Circuit",
+  "helpOfflineNote": "After first load, the app and map tiles work fully offline. This makes it useful as a <strong>general Albert Park GPS map</strong> even when roaming doesn't work.",
+  "quirkTitle": "A circuit that shares its roads with black swans",
+  "quirkBody": "Albert Park Lake is home to a breeding population of black swans, which frequently wander onto the road — sometimes with up to five cygnets in tow — causing traffic delays for everyday drivers around the park, race weekend or not.",
+  "welcomeSub": "Walk all 14 corners of the Albert Park Circuit, looping Albert Park Lake just south of Melbourne's CBD.",
+  "welcomeSteps": [
+    "<strong>Start at the S/F marker</strong> on Lakeside Drive — that's where the race starts and ends each lap.",
+    "<strong>Enable GPS</strong> and the app follows you — auto-advancing to the next corner as you approach. Orange markers mean you're close. Use <strong>Auto</strong> to toggle this.",
+    "<strong>Works offline</strong> — once loaded, the map and app work without internet. Useful as a general Albert Park GPS map if roaming doesn't work.",
+    "<strong>Tap Help</strong> anytime for full details on all features."
+  ],
+  "slug": "melbourne"
+}

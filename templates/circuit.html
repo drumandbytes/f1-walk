@@ -53,11 +53,20 @@ html, body { height: 100%; font-family: 'Helvetica Neue', Arial, sans-serif; bac
   #panel.collapsed #panel-scroll { display: none; }
   #panel.collapsed #nav-row { display: none; }
 }
-#topbar { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: #111; border-bottom: 1px solid #1e1e1e; flex-shrink: 0; }
+#topbar { display: flex; align-items: center; gap: 6px; padding: 10px 10px; background: #111; border-bottom: 1px solid #1e1e1e; flex-shrink: 0; container-type: inline-size; }
+.title-short { display: none; }
 
-.f1-badge { background: var(--accent); color: #fff; font-size: 10px; font-weight: 800; padding: 3px 7px; border-radius: 2px; flex-shrink: 0; }
-#topbar-right { display: flex; gap: 6px; margin-left: auto; flex-shrink: 0; }
-.topbar-btn { background: #1c1c1c; border: 1px solid #2a2a2a; color: #aaa; font-size: 11px; padding: 5px 10px; border-radius: 3px; cursor: pointer; display: flex; align-items: center; gap: 5px; white-space: nowrap; transition: all 0.2s; }
+.f1-badge { background: var(--accent); color: #fff; font-size: 10px; font-weight: 800; padding: 3px 7px; border-radius: 2px; flex-shrink: 0; text-decoration: none; display: inline-block; }
+#topbar-right { display: flex; gap: 3px; margin-left: auto; flex-shrink: 0; }
+.topbar-btn { background: #1c1c1c; border: 1px solid #2a2a2a; color: #aaa; font-size: 11px; padding: 5px 6px; border-radius: 3px; cursor: pointer; display: flex; align-items: center; gap: 4px; white-space: nowrap; transition: all 0.2s; }
+.btn-icon { display: block; flex-shrink: 0; }
+@container (max-width: 459px) {
+  .title-full { display: none; } .title-short { display: inline; }
+  #gps-label { display: none; }
+  #topbar-right { margin-left: 0; gap: 2px; }
+  .topbar-btn { padding: 5px 4px; }
+  .f1-badge { padding: 3px 5px; }
+}
 .topbar-btn:hover { border-color: #444; color: #ccc; }
 #fullscreen-btn.active { border-color: #5bc4ff; color: #5bc4ff; }
 @media (display-mode: standalone) { #fullscreen-btn { display: none; } }
@@ -141,6 +150,12 @@ html, body { height: 100%; font-family: 'Helvetica Neue', Arial, sans-serif; bac
 .about-close { width: 100%; padding: 10px; margin-top: 10px; background: #1a1a1a; border: 1px solid #2a2a2a; color: #888; font-size: 13px; border-radius: 4px; cursor: pointer; }
 .about-close:hover { background: #222; }
 
+#progress-section { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: #141414; border: 1px solid #1e1e1e; border-radius: 4px; padding: 10px 12px; margin-bottom: 4px; }
+#progress-stats { font-size: 12px; color: #ccc; line-height: 1.5; }
+#progress-reset-btn { flex-shrink: 0; background: none; border: 1px solid #2a2a2a; color: #666; font-size: 10px; padding: 4px 8px; border-radius: 3px; cursor: pointer; white-space: nowrap; }
+#progress-reset-btn:hover { border-color: #444; color: #999; }
+.progress-note { font-size: 10px; color: #444; margin: 0 0 14px; }
+
 .help-group { margin-bottom: 6px; border: 1px solid #1e1e1e; border-radius: 4px; overflow: hidden; }
 .help-toggle { width: 100%; text-align: left; background: #141414; border: none; color: #aaa; font-size: 12px; font-weight: 600; padding: 10px 12px; cursor: pointer; letter-spacing: 0.02em; transition: background 0.15s; }
 .help-toggle:hover { background: #1a1a1a; color: #ccc; }
@@ -150,6 +165,13 @@ html, body { height: 100%; font-family: 'Helvetica Neue', Arial, sans-serif; bac
 .help-body p { font-size: 12px; color: #888; line-height: 1.6; margin-bottom: 6px; }
 .help-body p:last-child { margin-bottom: 0; }
 .help-body strong { color: #ccc; }
+
+#completion-toast { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); z-index: 10001; display: flex; align-items: center; gap: 12px; background: #141414; border: 1px solid var(--accent); border-radius: 8px; padding: 12px 18px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); cursor: pointer; transition: top 0.4s ease; max-width: 90vw; }
+#completion-toast.open { top: 16px; }
+.toast-flag { font-size: 22px; }
+.toast-title { font-size: 13px; font-weight: 700; color: #fff; }
+.toast-best { color: var(--accent); display: none; }
+.toast-time { font-size: 18px; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
 
 #welcome-overlay { position: fixed; inset: 0; z-index: 10000; background: rgba(0,0,0,0.92); display: flex; align-items: center; justify-content: center; padding: 16px; }
 #welcome-overlay.hidden { display: none; }
@@ -175,17 +197,24 @@ html, body { height: 100%; font-family: 'Helvetica Neue', Arial, sans-serif; bac
 <!-- End Cloudflare Web Analytics -->
 </head>
 <body>
+<div id="completion-toast" onclick="dismissCompletionToast()">
+  <div class="toast-flag">🏁</div>
+  <div class="toast-text">
+    <div class="toast-title">Circuit complete!<span class="toast-best"> New best!</span></div>
+    <div class="toast-time"></div>
+  </div>
+</div>
 <div id="app">
   <div id="sidebar">
     <div id="topbar">
-      <span class="f1-badge">F1</span>
-      <h1 style="font-size:13px;font-weight:700;color:#f0f0f0;margin:0;letter-spacing:0.01em;">{{TITLE}}</h1>
+      <a class="f1-badge" href="/" title="All circuits">F1</a>
+      <h1 style="font-size:13px;font-weight:700;color:#f0f0f0;margin:0;letter-spacing:0.01em;min-width:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><span class="title-full">{{TITLE}}</span><span class="title-short">{{APPLE_TITLE}}</span></h1>
       <div id="topbar-right">
-        <button class="topbar-btn" id="gps-btn" onclick="toggleGPS()"><span id="gps-dot"></span><span id="gps-label">GPS</span></button>
-        <button class="topbar-btn" id="auto-btn" onclick="toggleAutoAdvance()" title="Auto-advance corners">Auto</button>
-        <button class="topbar-btn" id="fullscreen-btn" onclick="toggleFullscreen()" title="Fullscreen">⛶</button>
-        <button class="topbar-btn" onclick="showHelp()">Help</button>
-        <button class="topbar-btn" onclick="openAbout()">About</button>
+        <button class="topbar-btn" id="gps-btn" onclick="toggleGPS()" title="GPS tracking"><span id="gps-dot"></span><span id="gps-label">GPS</span></button>
+        <button class="topbar-btn" id="auto-btn" onclick="toggleAutoAdvance()" title="Auto-advance corners"><svg class="btn-icon" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 8a5 5 0 1 1-1.5-3.55"/><path d="M13 2.3v3.2h-3.2"/></svg></button>
+        <button class="topbar-btn" id="fullscreen-btn" onclick="toggleFullscreen()" title="Fullscreen"><svg class="btn-icon" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5.5V2h3.5"/><path d="M14 5.5V2h-3.5"/><path d="M2 10.5V14h3.5"/><path d="M14 10.5V14h-3.5"/></svg></button>
+        <button class="topbar-btn" onclick="showHelp()" title="Help"><svg class="btn-icon" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6.3"/><path d="M6.1 6.2a1.9 1.9 0 1 1 2.7 1.7c-.7.4-1 .8-1 1.5"/><circle cx="7.8" cy="11.3" r="0.65" fill="currentColor" stroke="none"/></svg></button>
+        <button class="topbar-btn" onclick="openAbout()" title="About"><svg class="btn-icon" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6.3"/><line x1="8" y1="7.3" x2="8" y2="11"/><circle cx="8" cy="4.9" r="0.65" fill="currentColor" stroke="none"/></svg></button>
       </div>
     </div>
     <div id="panel">
@@ -233,7 +262,7 @@ html, body { height: 100%; font-family: 'Helvetica Neue', Arial, sans-serif; bac
       <div class="about-section">
         <h3>Made by Maris</h3>
         <p>Data engineer based in Estonia. Writing about tech at <a href="https://drumandbytes.com" target="_blank" rel="noopener" style="color:#5bc4ff;text-decoration:none;">drumandbytes.com</a>.</p>
-        <p>Found a bug or want to suggest something? <a href="https://github.com/drumandbytes/monaco-f1-walk/issues" target="_blank" rel="noopener" style="color:#5bc4ff;text-decoration:none;">Open an issue on GitHub.</a></p>
+        <p>Found a bug or want to suggest something? <a href="https://github.com/drumandbytes/f1-walk/issues" target="_blank" rel="noopener" style="color:#5bc4ff;text-decoration:none;">Open an issue on GitHub.</a></p>
         <a class="coffee-btn" href="https://buymeacoffee.com/justmaris" target="_blank" rel="noopener">
           <span class="coffee-icon">☕</span>
           <div class="coffee-meta">Buy me a coffee<span>buymeacoffee.com/justmaris</span></div>
@@ -248,6 +277,12 @@ html, body { height: 100%; font-family: 'Helvetica Neue', Arial, sans-serif; bac
     <div id="help-sheet">
       <h2>Help</h2>
       <p class="about-sub">{{HELP_SUBTITLE}}</p>
+
+      <div id="progress-section">
+        <div id="progress-stats">No corners visited yet — enable GPS and start walking.</div>
+        <button id="progress-reset-btn" onclick="if(confirm('Reset your progress for this circuit? This can\'t be undone.')) resetCircuitProgress();">Reset progress</button>
+      </div>
+      <p class="progress-note">Stored only on this device (localStorage) — no account, nothing sent anywhere.</p>
 
       <div class="help-group">
         <button class="help-toggle" onclick="toggleHelp(this)">▸ Navigation</button>
@@ -276,8 +311,8 @@ html, body { height: 100%; font-family: 'Helvetica Neue', Arial, sans-serif; bac
           <p>{{HELP_OFFLINE_NOTE}}</p>
           <p>GPS itself doesn't require internet — your device's location hardware works independently of mobile data.</p>
           <p>Map tiles you've already viewed are cached automatically, or download the whole route now while you have signal:</p>
-          <p><button class="topbar-btn" id="preload-btn" onclick="preloadTiles()" style="width:100%;justify-content:center;">Download map for offline use</button></p>
-          <p id="preload-progress" style="text-align:center;color:#666;"></p>
+          <p><button class="topbar-btn preload-btn" onclick="preloadTiles()" style="width:100%;justify-content:center;">Download map for offline use</button></p>
+          <p class="preload-progress" style="text-align:center;color:#666;"></p>
         </div>
       </div>
 
@@ -310,7 +345,7 @@ html, body { height: 100%; font-family: 'Helvetica Neue', Arial, sans-serif; bac
       <div class="help-group">
         <button class="help-toggle" onclick="toggleHelp(this)">▸ Issues & feedback</button>
         <div class="help-body">
-          <p>Found a corner that's off? A fact that's wrong? <a href="https://github.com/drumandbytes/monaco-f1-walk/issues" target="_blank" rel="noopener" style="color:#5bc4ff;text-decoration:none;font-weight:600;">Open an issue on GitHub</a> — corrections welcome.</p>
+          <p>Found a corner that's off? A fact that's wrong? <a href="https://github.com/drumandbytes/f1-walk/issues" target="_blank" rel="noopener" style="color:#5bc4ff;text-decoration:none;font-weight:600;">Open an issue on GitHub</a> — corrections welcome.</p>
         </div>
       </div>
 
@@ -327,6 +362,8 @@ html, body { height: 100%; font-family: 'Helvetica Neue', Arial, sans-serif; bac
 {{WELCOME_STEPS}}
       </div>
       <p style="font-size:12px;color:#bba040;margin-top:14px;padding:11px 13px;border:1px solid #4a3a00;border-radius:5px;background:#1a1400;line-height:1.5;">⬇ <strong style="color:#ffd700;">Install as an app</strong> — Safari → Share → "Add to Home Screen" on iOS, or Chrome/Brave on Android. Works offline after first load.</p>
+      <p style="margin-top:10px;"><button class="topbar-btn preload-btn" onclick="preloadTiles()" style="width:100%;justify-content:center;">Download map for offline use</button></p>
+      <p class="preload-progress" style="text-align:center;color:#666;font-size:12px;"></p>
       <hr class="welcome-divider">
       <p style="font-size:11px;color:#3a3a3a;">No cookies. GPS stays on your device. Fan project — not affiliated with F1 or any circuit's organisers.</p>
       <button class="welcome-start" onclick="startWalk()">Start the walk →</button>
@@ -345,8 +382,97 @@ function rl(n) { const p = racingLine[n] ?? racingLine[0]; return { lat: p[0], l
 const ACCENT = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
 let activeIdx=0, map, markers=[], circuitBounds;
 let autoAdvance=true;
+let lastAutoAdvanceAt=0;
+const AUTO_ADVANCE_COOLDOWN_MS=2000;
 let gpsActive=false, gpsWatchId=null, gpsMarker=null, gpsAccCircle=null;
 let panelCollapsed=false;
+
+// ── LOCAL PROGRESS TRACKING ─────────────────────────────────────
+// Device-local only (localStorage, one key shared across every circuit page
+// on this site) -- no accounts, no server, nothing leaves the device. Marks
+// a stop "visited" the moment GPS confirms the walker was physically within
+// range of it (not just browsed via Prev/Next or the map), and times a full
+// GPS-tracked walk from S/F to the final corner for a personal best.
+const PROGRESS_KEY = 'f1walk_progress_v1';
+const VISIT_RADIUS_M = 30;
+let walkStartedAt = null;
+function loadAllProgress() {
+  try { return JSON.parse(localStorage.getItem(PROGRESS_KEY)) || {}; } catch(e) { return {}; }
+}
+function saveAllProgress(all) {
+  try { localStorage.setItem(PROGRESS_KEY, JSON.stringify(all)); } catch(e) {}
+}
+function getCircuitProgress() {
+  const all = loadAllProgress();
+  return all['{{SLUG}}'] || { visited: [], bestTimeMs: null };
+}
+function setCircuitProgress(progress) {
+  const all = loadAllProgress();
+  all['{{SLUG}}'] = progress;
+  saveAllProgress(all);
+}
+function resetCircuitProgress() {
+  const all = loadAllProgress();
+  delete all['{{SLUG}}'];
+  saveAllProgress(all);
+  walkStartedAt = null;
+  updateProgressUI();
+}
+window.resetCircuitProgress = resetCircuitProgress;
+function formatDuration(ms) {
+  const totalSec = Math.round(ms / 1000);
+  const m = Math.floor(totalSec / 60), s = totalSec % 60;
+  return `${m}:${String(s).padStart(2,'0')}`;
+}
+// Called on every GPS tick regardless of auto-advance, so a stop counts as
+// visited even if the walker starts GPS mid-circuit or browses out of order.
+function checkNearbyVisits(lat, lng) {
+  const progress = getCircuitProgress();
+  let changed = false;
+  const wasAtSF = progress.visited.includes(0);
+  const wasAtLast = progress.visited.includes(stops.length - 1);
+  stops.forEach((s, i) => {
+    if (progress.visited.includes(i)) return;
+    if (haversine(lat, lng, s.lat, s.lng) < VISIT_RADIUS_M) {
+      progress.visited.push(i);
+      changed = true;
+    }
+  });
+  if (!wasAtSF && progress.visited.includes(0) && walkStartedAt === null) {
+    walkStartedAt = Date.now();
+  }
+  if (!wasAtLast && progress.visited.includes(stops.length - 1) && walkStartedAt !== null) {
+    const elapsed = Date.now() - walkStartedAt;
+    const isNewBest = progress.bestTimeMs === null || elapsed < progress.bestTimeMs;
+    if (isNewBest) progress.bestTimeMs = elapsed;
+    walkStartedAt = null;
+    changed = true;
+    showCompletionToast(elapsed, isNewBest);
+  }
+  if (changed) {
+    setCircuitProgress(progress);
+    updateProgressUI();
+  }
+}
+function updateProgressUI() {
+  const progress = getCircuitProgress();
+  const el = document.getElementById('progress-stats');
+  if (!el) return;
+  const visitedCount = progress.visited.length;
+  el.textContent = visitedCount === 0
+    ? 'No corners visited yet — enable GPS and start walking.'
+    : `${visitedCount} / ${stops.length} corners visited` + (progress.bestTimeMs !== null ? ` · Best walk: ${formatDuration(progress.bestTimeMs)}` : '');
+}
+function showCompletionToast(elapsedMs, isNewBest) {
+  const toast = document.getElementById('completion-toast');
+  if (!toast) return;
+  toast.querySelector('.toast-time').textContent = formatDuration(elapsedMs);
+  toast.querySelector('.toast-best').style.display = isNewBest ? 'inline' : 'none';
+  toast.classList.add('open');
+  clearTimeout(showCompletionToast._t);
+  showCompletionToast._t = setTimeout(() => toast.classList.remove('open'), 8000);
+}
+window.dismissCompletionToast = () => document.getElementById('completion-toast')?.classList.remove('open');
 
 const strip = document.getElementById("sector-strip");
 sectors.forEach(s => {
@@ -382,6 +508,7 @@ function initMap() {
   });
 
   jumpTo(0);
+  updateProgressUI();
 }
 
 function jumpTo(idx) {
@@ -404,9 +531,8 @@ function jumpTo(idx) {
   badge.textContent = c.label;
   badge.style.background = c.isSF ? "#c8960c" : ACCENT;
   document.getElementById("corner-name").textContent = c.name;
-  document.getElementById("corner-meta").textContent = c.isSF
-    ? "Boulevard Albert 1er · Pit straight"
-    : `Sector ${c.sector} — ${sectors.find(s=>s.id===c.sector)?.name||""} · ${c.dist} km`;
+  document.getElementById("corner-meta").textContent =
+    `Sector ${c.sector} — ${sectors.find(s=>s.id===c.sector)?.name||""} · ${c.dist} km`;
   document.getElementById("corner-desc").textContent = c.desc;
   document.getElementById("s-speed").textContent = c.speed ?? "—";
   document.getElementById("s-gear").textContent = c.gear ?? "—";
@@ -455,6 +581,7 @@ function stopGPS() {
   document.getElementById("gps-btn").className = "topbar-btn";
   document.getElementById("gps-label").textContent = "GPS";
   releaseWakeLock();
+  walkStartedAt = null; // abandon any in-progress timed walk, GPS can't confirm the rest of it
 }
 function onGPSUpdate(pos) {
   const {latitude:lat, longitude:lng, accuracy:acc} = pos.coords;
@@ -470,11 +597,21 @@ function onGPSUpdate(pos) {
     gpsAccCircle = L.circle([lat,lng], {radius:acc, color:"#00cc77", fillColor:"#00cc77", fillOpacity:0.07, weight:1, opacity:0.25}).addTo(map);
   } else { gpsAccCircle.setLatLng([lat,lng]); gpsAccCircle.setRadius(acc); }
   map.setView([lat,lng], Math.max(map.getZoom(),17), {animate:true, duration:0.8});
+  checkNearbyVisits(lat, lng);
   if(autoAdvance) {
     const next = activeIdx + 1;
     if(next < stops.length) {
       const d = haversine(lat, lng, stops[next].lat, stops[next].lng);
-      if(d < 25) {
+      const dCurrent = haversine(lat, lng, stops[activeIdx].lat, stops[activeIdx].lng);
+      // Require genuine progress past the current corner, not just proximity to
+      // the next one -- some corners sit under 25m apart (e.g. Baku's castle
+      // section), so "within range of next" alone can trigger the instant the
+      // current corner activates, before the person has actually walked
+      // anywhere. Also rate-limit so a burst of noisy GPS updates can't chain
+      // through several close corners in one go.
+      const now = Date.now();
+      if(d < 25 && d < dCurrent && (now - lastAutoAdvanceAt) > AUTO_ADVANCE_COOLDOWN_MS) {
+        lastAutoAdvanceAt = now;
         jumpTo(next);
       } else {
         const nextEl = document.getElementById(`cm-${next}`);
@@ -518,42 +655,76 @@ function tileXY(lat, lng, zoom) {
   return [x, y];
 }
 let preloadRunning = false;
+const PRIORITY_TILE_CACHE = 'circuit-tiles-priority-v1';
+// Builds the tile set for just a corridor around the actual racing line
+// (every tile the line passes through, plus a 1-tile margin for panning
+// room) instead of the full padded bounding box. For an elongated circuit
+// like Baku or Las Vegas the bounding box is mostly empty city blocks the
+// route never goes near, so this cuts the download by roughly a third —
+// and keeps every circuit's offline set small enough that preloading all
+// of them can't evict each other out of the shared tile cache.
+function corridorTileKeys(zoom) {
+  const touched = new Set();
+  racingLine.forEach(([lat, lng]) => {
+    const [x, y] = tileXY(lat, lng, zoom);
+    touched.add(`${x},${y}`);
+  });
+  const corridor = new Set();
+  touched.forEach(key => {
+    const [x, y] = key.split(',').map(Number);
+    for (let dx = -1; dx <= 1; dx++) {
+      for (let dy = -1; dy <= 1; dy++) {
+        corridor.add(`${x+dx},${y+dy}`);
+      }
+    }
+  });
+  return corridor;
+}
 async function preloadTiles() {
   if (preloadRunning) return;
   preloadRunning = true;
-  const btn = document.getElementById('preload-btn');
-  const progress = document.getElementById('preload-progress');
-  const bounds = circuitBounds;
-  const sw = bounds.getSouthWest(), ne = bounds.getNorthEast();
+  // Two instances of this control exist (welcome popup + help panel) and
+  // stay in sync since they share these classes rather than unique IDs.
+  const btns = document.querySelectorAll('.preload-btn');
+  const progresses = document.querySelectorAll('.preload-progress');
+  const setProgressText = (text) => progresses.forEach(p => p.textContent = text);
   const ZOOMS = [15, 16, 17];
   const subs = ['a','b','c'];
   const urls = [];
   ZOOMS.forEach(z => {
-    const [x0, y1] = tileXY(sw.lat, sw.lng, z);
-    const [x1, y0] = tileXY(ne.lat, ne.lng, z);
-    for (let x = Math.min(x0,x1); x <= Math.max(x0,x1); x++) {
-      for (let y = Math.min(y0,y1); y <= Math.max(y0,y1); y++) {
-        const s = subs[(x+y) % subs.length];
-        urls.push(`https://${s}.tile.openstreetmap.org/${z}/${x}/${y}.png`);
-      }
-    }
+    corridorTileKeys(z).forEach(key => {
+      const [x, y] = key.split(',').map(Number);
+      const s = subs[(x+y) % subs.length];
+      urls.push(`https://${s}.tile.openstreetmap.org/${z}/${x}/${y}.png`);
+    });
   });
   let done = 0, failed = 0;
-  btn.disabled = true;
+  btns.forEach(b => b.disabled = true);
   const CONCURRENCY = 6;
   const totalTiles = urls.length;
+  const priorityCache = await caches.open(PRIORITY_TILE_CACHE);
+  const generalCache = await caches.open('circuit-tiles-v2'); // must match TILE_CACHE in sw.js
   async function worker() {
     while (urls.length) {
       const url = urls.shift();
-      try { await fetch(url); } catch(e) { failed++; }
+      try {
+        const res = await fetch(url);
+        if (res.ok) {
+          await priorityCache.put(url, res.clone());
+          // The service worker's own fetch handler also caches this into the
+          // general (capped) bucket on its way back to us -- drop that copy
+          // so preloaded tiles live in exactly one place, not two.
+          await generalCache.delete(url);
+        } else failed++;
+      } catch(e) { failed++; }
       done++;
-      progress.textContent = `${done} / ${totalTiles}`;
+      setProgressText(`${done} / ${totalTiles}`);
     }
   }
-  progress.textContent = `0 / ${totalTiles}`;
+  setProgressText(`0 / ${totalTiles}`);
   await Promise.all(Array.from({length: CONCURRENCY}, worker));
-  progress.textContent = failed ? `Done (${failed} tiles failed — try again if offline use seems incomplete)` : `Done — ${totalTiles} tiles cached`;
-  btn.disabled = false;
+  setProgressText(failed ? `Done (${failed} tiles failed — try again if offline use seems incomplete)` : `Done — ${totalTiles} tiles cached`);
+  btns.forEach(b => b.disabled = false);
   preloadRunning = false;
 }
 window.preloadTiles = preloadTiles;
@@ -589,7 +760,7 @@ function startWalk() {
   if(navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(pos => {
       const {latitude:lat, longitude:lng} = pos.coords;
-      if(haversine(lat,lng,43.7368,7.4262) < 5000) {
+      if(haversine(lat,lng,SF_POS[0],SF_POS[1]) < 5000) {
         let nearest=0, minD=Infinity;
         stops.forEach((c,i) => { const d=haversine(lat,lng,c.lat,c.lng); if(d<minD){minD=d;nearest=i;} });
         jumpTo(nearest);

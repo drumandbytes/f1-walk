@@ -1,7 +1,7 @@
 {
-  "name": "Monaco GP Circuit Walk",
-  "short_name": "Monaco Walk",
-  "description": "Turn-by-turn walking guide to all 19 corners of the Circuit de Monaco",
+  "name": "F1 Circuit Walks",
+  "short_name": "F1 Walks",
+  "description": "Turn-by-turn walking guides to real F1 street circuits — Monaco, Baku, Singapore, Las Vegas, and Melbourne",
   "lang": "en",
   "start_url": "/",
   "display": "standalone",
