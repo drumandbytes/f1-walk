@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>F1 Circuit Walks</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Ccircle%20cx%3D%2216%22%20cy%3D%2216%22%20r%3D%2215%22%20fill%3D%22%23111%22%20stroke%3D%22%23e8001d%22%20stroke-width%3D%222%22/%3E%3Ccircle%20cx%3D%2216%22%20cy%3D%2216%22%20r%3D%226%22%20fill%3D%22none%22%20stroke%3D%22%23e8001d%22%20stroke-width%3D%222%22/%3E%3C/svg%3E">
+<meta name="description" content="Free, fan-made walking guides to real F1 street circuits — Monaco, Baku, Singapore, Las Vegas, and Melbourne. GPS tracking, historical facts, offline maps, no tracking.">
+<meta property="og:title" content="F1 Circuit Walks">
+<meta property="og:description" content="Walking guides to real F1 street circuits, with GPS tracking, historical facts, and offline maps.">
+<meta property="og:url" content="https://f1walk.drumandbytes.dev">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://f1walk.drumandbytes.dev/preview.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="F1 Circuit Walks — Monaco, Baku, Singapore, Las Vegas, and Melbourne">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="F1 Circuit Walks">
+<meta name="twitter:description" content="Walking guides to real F1 street circuits, with GPS tracking, historical facts, and offline maps.">
+<meta name="twitter:image" content="https://f1walk.drumandbytes.dev/preview.png">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0a0a0a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="F1 Walks">
+<link rel="apple-touch-icon" href="/icon.svg">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: #0a0a0a; color: #f0f0f0; font-family: 'Helvetica Neue', Arial, sans-serif; }
+body { min-height: 100vh; display: flex; flex-direction: column; }
+header { padding: 28px 20px 18px; text-align: center; border-bottom: 1px solid #1e1e1e; }
+header h1 { font-size: 22px; font-weight: 800; letter-spacing: 0.01em; }
+header p { margin-top: 6px; font-size: 13px; color: #888; max-width: 480px; margin-left: auto; margin-right: auto; }
+#map { height: 46vh; min-height: 280px; width: 100%; }
+.leaflet-tile-pane { filter: saturate(0.55) brightness(0.75); }
+.leaflet-control-attribution { display: none !important; }
+.leaflet-bar a { background: #111 !important; color: #aaa !important; border-color: #2a2a2a !important; }
+.hub-pin { display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); border: 2px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.5); cursor: pointer; }
+.hub-pin span { transform: rotate(45deg); font-size: 10px; font-weight: 800; color: #fff; }
+.hub-pin-label { background: #111; border: 1px solid #2a2a2a; color: #f0f0f0; font-size: 11px; font-weight: 700; padding: 3px 7px; border-radius: 3px; white-space: nowrap; }
+#cards { flex: 1; padding: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; max-width: 1100px; width: 100%; margin: 0 auto; }
+.circuit-card { display: block; background: #111; border: 1px solid #1e1e1e; border-left: 4px solid var(--card-accent); border-radius: 6px; padding: 16px 18px; text-decoration: none; color: inherit; transition: border-color 0.15s, transform 0.15s; }
+.circuit-card:hover { border-color: var(--card-accent); transform: translateY(-2px); }
+.circuit-card-name { font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+.circuit-card-sub { font-size: 12.5px; color: #999; line-height: 1.5; margin-bottom: 12px; }
+.circuit-card-progress { font-size: 11px; color: var(--card-accent); margin-bottom: 10px; min-height: 14px; display: none; }
+.circuit-card-progress.visible { display: block; }
+.circuit-card-meta { display: flex; align-items: center; justify-content: space-between; font-size: 11px; color: #555; text-transform: uppercase; letter-spacing: 0.05em; }
+.circuit-card-go { color: var(--card-accent); font-weight: 700; text-transform: none; letter-spacing: normal; font-size: 12px; }
+footer { padding: 18px 20px 28px; text-align: center; font-size: 11px; color: #444; line-height: 1.6; }
+footer a { color: #666; }
+</style>
+</head>
+<body>
+<header>
+  <h1>F1 Circuit Walks</h1>
+  <p>Free, fan-made walking guides to real F1 street circuits — GPS tracking, historical facts, and offline maps. No tracking, no accounts.</p>
+</header>
+<div id="map"></div>
+<div id="cards">
+{{HUB_CARDS}}
+</div>
+<footer>
+  Unofficial fan project — not affiliated with Formula One Licensing B.V. or any circuit's organising body.<br>
+  Source on GitHub at <a href="https://github.com/drumandbytes/f1-walk">drumandbytes/f1-walk</a>.
+</footer>
+<script>
+/*__HUB_CIRCUITS__*/
+// Centers on a random circuit each load rather than a world-wide fit --
+// also sidesteps a Leaflet timing bug where fitBounds() at synchronous
+// script time sees a zero-width container and picks maxZoom instead,
+// since setView() with an explicit zoom doesn't need to measure it.
+const startCircuit = HUB_CIRCUITS[Math.floor(Math.random() * HUB_CIRCUITS.length)];
+const map = L.map("map", {center:[startCircuit.lat, startCircuit.lng], zoom:14, zoomControl:true, attributionControl:false, scrollWheelZoom:true});
+L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {maxZoom:18}).addTo(map);
+
+HUB_CIRCUITS.forEach(c => {
+  if (c.line && c.line.length > 1) {
+    const line = L.polyline(c.line, {color:c.color, weight:2, opacity:0.85}).addTo(map);
+    line.on("click", () => { window.location.href = `/${c.slug}/`; });
+  }
+  const icon = L.divIcon({
+    className: "",
+    html: `<div class="hub-pin" style="background:${c.color}"><span>F1</span></div>`,
+    iconSize: [30,30], iconAnchor: [15,30],
+  });
+  const marker = L.marker([c.lat, c.lng], {icon}).addTo(map);
+  marker.bindTooltip(c.title, {permanent:false, direction:"top", offset:[0,-28], className:"hub-pin-label"});
+  marker.on("click", () => { window.location.href = `/${c.slug}/`; });
+});
+
+setTimeout(() => map.invalidateSize(), 50);
+
+// Reads the same device-local progress data each circuit page writes
+// (shared localStorage key, same origin) -- no server involved.
+function formatDuration(ms) {
+  const totalSec = Math.round(ms / 1000);
+  const m = Math.floor(totalSec / 60), s = totalSec % 60;
+  return `${m}:${String(s).padStart(2,'0')}`;
+}
+try {
+  const all = JSON.parse(localStorage.getItem('f1walk_progress_v1')) || {};
+  document.querySelectorAll('.circuit-card[data-slug]').forEach(card => {
+    const progress = all[card.dataset.slug];
+    if (!progress || !progress.visited || progress.visited.length === 0) return;
+    const total = parseInt(card.dataset.total, 10);
+    const visited = progress.visited.length;
+    const el = card.querySelector('.circuit-card-progress');
+    const complete = visited >= total;
+    let text = complete ? `✓ Completed` : `${visited} / ${total} visited`;
+    if (progress.bestTimeMs != null) text += ` · Best ${formatDuration(progress.bestTimeMs)}`;
+    el.textContent = text;
+    el.classList.add('visible');
+  });
+} catch(e) {}
+</script>
+</body>
+</html>

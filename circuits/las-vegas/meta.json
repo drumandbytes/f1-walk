@@ -1,0 +1,27 @@
+{
+  "title": "Las Vegas GP Circuit Walk",
+  "publishedTime": "2026-08-01T09:00:00+00:00",
+  "ogTitle": "Las Vegas GP Circuit Walk — The Strip Circuit Guide",
+  "ogDescription": "Walk all 17 corners of the Las Vegas Strip Circuit, past the Sphere, Bellagio, and Caesars Palace, with GPS tracking, historical facts, and offline maps. Free, no tracking.",
+  "canonicalUrl": "https://f1walk.drumandbytes.dev/las-vegas",
+  "ogImage": "https://f1walk.drumandbytes.dev/las-vegas/preview.png",
+  "ogImageAlt": "Las Vegas GP Circuit Walk — circuit outline on dark background",
+  "twitterTitle": "Las Vegas GP Circuit Walk — The Strip Circuit Guide",
+  "twitterDescription": "Walk all 17 corners of the Las Vegas Strip Circuit, past the Sphere, Bellagio, and Caesars Palace, with GPS tracking, historical facts, and offline maps.",
+  "themeColor": "#eab308",
+  "appleTitle": "Vegas Walk",
+  "stopCountLabel": "18 stops",
+  "aboutStory": "        <p>Built the same way as the Singapore guide — researched remotely using public GPS data, race reports, and Wikipedia, not walked in person.</p>\n        <p>The Las Vegas Strip Circuit is brand new (first raced in 2023), runs down public Las Vegas Boulevard and Koval Lane, and is only closed to normal traffic race week — corner positions here are a first draft and still need a proper alignment pass against the real track.</p>\n        <p>Treat it as a work in progress rather than ground truth, and if you walk it yourself, corrections and reports are very welcome.</p>",
+  "helpSubtitle": "Fan-made walking guide — S/F line + all 17 corners of the Las Vegas Strip Circuit",
+  "helpOfflineNote": "After first load, the app and map tiles work fully offline. This makes it useful as a <strong>general Las Vegas Strip GPS map</strong> even when roaming doesn't work.",
+  "quirkTitle": "A circuit built on the Strip itself",
+  "quirkBody": "Unlike Monaco or Baku, the Las Vegas Strip Circuit runs down Las Vegas Boulevard and Koval Lane — public roads that stay open to normal traffic and pedestrians all year, closing only for a few days around the race. Corner positions in this app are a first draft based on public race reports — treat exact placements as provisional for now.",
+  "welcomeSub": "Walk all 17 corners of the Las Vegas Strip Circuit, past the Sphere, Bellagio, and Caesars Palace.",
+  "welcomeSteps": [
+    "<strong>Start at the S/F marker</strong> on Koval Lane — that's where the race starts and ends each lap.",
+    "<strong>Enable GPS</strong> and the app follows you — auto-advancing to the next corner as you approach. Orange markers mean you're close. Use <strong>Auto</strong> to toggle this.",
+    "<strong>Works offline</strong> — once loaded, the map and app work without internet. Useful as a general Las Vegas Strip GPS map if roaming doesn't work.",
+    "<strong>Tap Help</strong> anytime for full details on all features."
+  ],
+  "slug": "las-vegas"
+}

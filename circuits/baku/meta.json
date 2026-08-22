@@ -1,0 +1,27 @@
+{
+  "title": "Baku City Circuit Walk",
+  "publishedTime": "2026-07-27T09:00:00+00:00",
+  "ogTitle": "Baku City Circuit Walk — Azerbaijan GP Guide",
+  "ogDescription": "Walk all 20 corners of the Baku City Circuit, from the seafront straight to the Old City walls, with GPS tracking, historical facts, and offline maps. Free, no tracking.",
+  "canonicalUrl": "https://f1walk.drumandbytes.dev/baku",
+  "ogImage": "https://f1walk.drumandbytes.dev/baku/preview.png",
+  "ogImageAlt": "Baku City Circuit Walk — circuit outline on dark background",
+  "twitterTitle": "Baku City Circuit Walk — Azerbaijan GP Guide",
+  "twitterDescription": "Walk all 20 corners of the Baku City Circuit, from the seafront straight to the Old City walls, with GPS tracking, historical facts, and offline maps.",
+  "themeColor": "#3b82f6",
+  "appleTitle": "Baku Walk",
+  "stopCountLabel": "21 stops",
+  "aboutStory": "        <p>Unlike the original Monaco guide — built the night before an actual visit and beta tested on the circuit itself — this Baku guide was researched remotely, not walked in person.</p>\n        <p>The racing line comes from public GPS data and the historical facts are sourced from race reports, but details like exact pedestrian access through the Old City haven't been confirmed on foot.</p>\n        <p>Treat it as a solid starting point rather than ground truth, and if you walk it yourself, corrections and reports are very welcome.</p>",
+  "helpSubtitle": "Fan-made walking guide — S/F line + all 20 corners of the Baku City Circuit",
+  "helpOfflineNote": "After first load, the app and map tiles work fully offline. This makes it useful as a <strong>general Baku GPS map</strong> even when roaming doesn't work — Azerbaijan is outside the EU, so data roaming may be expensive or unavailable.",
+  "quirkTitle": "The Old City (T8–T11)",
+  "quirkBody": "This section runs through <strong>Icherisheher</strong>, Baku's UNESCO-listed walled Old City, along streets that are open to the public outside race week. Unlike the Monaco tunnel walkway, this hasn't been walked and verified in person yet — treat pedestrian access here as unconfirmed until someone reports back.",
+  "welcomeSub": "Walk all 20 corners of the Baku City Circuit, from the seafront to the Old City walls.",
+  "welcomeSteps": [
+    "<strong>Start at the S/F marker</strong> on Neftchilar Avenue — that's where the race starts and ends each lap.",
+    "<strong>Enable GPS</strong> and the app follows you — auto-advancing to the next corner as you approach. Orange markers mean you're close. Use <strong>Auto</strong> to toggle this.",
+    "<strong>Works offline</strong> — once loaded, the map and app work without internet. Useful as a general Baku GPS map if roaming doesn't work.",
+    "<strong>Tap Help</strong> anytime for full details on all features."
+  ],
+  "slug": "baku"
+}

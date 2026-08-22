@@ -1,0 +1,27 @@
+{
+  "title": "Singapore GP Circuit Walk",
+  "publishedTime": "2026-07-27T09:00:00+00:00",
+  "ogTitle": "Singapore GP Circuit Walk — Marina Bay Guide",
+  "ogDescription": "Walk all 19 corners of the Marina Bay Street Circuit, F1's first night race, with GPS tracking, historical facts, and offline maps. Free, no tracking.",
+  "canonicalUrl": "https://f1walk.drumandbytes.dev/singapore",
+  "ogImage": "https://f1walk.drumandbytes.dev/singapore/preview.png",
+  "ogImageAlt": "Singapore GP Circuit Walk — circuit outline on dark background",
+  "twitterTitle": "Singapore GP Circuit Walk — Marina Bay Guide",
+  "twitterDescription": "Walk all 19 corners of the Marina Bay Street Circuit, F1's first night race, with GPS tracking, historical facts, and offline maps.",
+  "themeColor": "#a855f7",
+  "appleTitle": "Singapore Walk",
+  "stopCountLabel": "20 stops",
+  "aboutStory": "        <p>Unlike the original Monaco guide — built the night before an actual visit and beta tested on the circuit itself — this Singapore guide was researched remotely, not walked in person.</p>\n        <p>The racing line comes from public GPS data and the historical facts are sourced from race reports and Wikipedia, but corner positions are still being validated against the real track — the Marina Bay circuit changed significantly in 2023, and getting the numbering right took real care.</p>\n        <p>Treat it as a work in progress rather than ground truth, and if you walk it yourself, corrections and reports are very welcome.</p>",
+  "helpSubtitle": "Fan-made walking guide — S/F line + all 19 corners of the Marina Bay Street Circuit",
+  "helpOfflineNote": "After first load, the app and map tiles work fully offline. This makes it useful as a <strong>general Singapore GPS map</strong> even when roaming doesn't work.",
+  "quirkTitle": "A circuit rebuilt mid-life",
+  "quirkBody": "Marina Bay's layout changed substantially in 2023 — a technical waterfront section was demolished and replaced with a straight, cutting the corner count from 23 to 19. Corner positions in this app are still being validated against the current track — treat exact placements as provisional for now.",
+  "welcomeSub": "Walk all 19 corners of the Marina Bay Street Circuit, home of F1's first night race.",
+  "welcomeSteps": [
+    "<strong>Start at the S/F marker</strong> beside the Singapore Flyer — that's where the race starts and ends each lap.",
+    "<strong>Enable GPS</strong> and the app follows you — auto-advancing to the next corner as you approach. Orange markers mean you're close. Use <strong>Auto</strong> to toggle this.",
+    "<strong>Works offline</strong> — once loaded, the map and app work without internet. Useful as a general Singapore GPS map if roaming doesn't work.",
+    "<strong>Tap Help</strong> anytime for full details on all features."
+  ],
+  "slug": "singapore"
+}

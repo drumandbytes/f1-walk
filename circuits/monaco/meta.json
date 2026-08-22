@@ -1,0 +1,27 @@
+{
+  "title": "Monaco GP Circuit Walk",
+  "publishedTime": "2026-05-20T09:00:00+00:00",
+  "ogTitle": "Monaco GP Circuit Walk — All 19 Corners with GPS",
+  "ogDescription": "Walk all 19 corners of the Circuit de Monaco with GPS tracking, historical facts, and offline maps. Free, no tracking.",
+  "canonicalUrl": "https://f1walk.drumandbytes.dev/monaco",
+  "ogImage": "https://f1walk.drumandbytes.dev/monaco/preview.png",
+  "ogImageAlt": "Monaco GP Circuit Walk — circuit outline on dark background",
+  "twitterTitle": "Monaco GP Circuit Walk — All 19 Corners with GPS",
+  "twitterDescription": "Walk all 19 corners of the Circuit de Monaco with GPS tracking, historical facts, and offline maps.",
+  "themeColor": "#e8001d",
+  "appleTitle": "Monaco Walk",
+  "stopCountLabel": "20 stops",
+  "aboutStory": "        <p>I've followed F1 since childhood and became an active fan in late 2020. When a trip to Nice was planned, visiting Monaco was a given — I wanted to see the track with my own eyes.</p>\n        <p>The day before going I had an idea: build an interactive walking guide so the visit would be more than just walking around. I built it overnight and beta tested it on the circuit the next day.</p>\n        <p>It turned out more useful than expected — the historical facts and racing context made each corner feel alive, the offline map worked perfectly without roaming, and it gave a real sense of what F1 drivers actually experience through those streets.</p>",
+  "helpSubtitle": "Fan-made walking guide — S/F line + all 19 corners of the Circuit de Monaco",
+  "helpOfflineNote": "After first load, the app and map tiles work fully offline. This makes it useful as a <strong>general Monaco GPS map</strong> even when roaming doesn't work — Monaco is outside the EU, so data roaming may be expensive or unavailable.",
+  "quirkTitle": "Tunnel (T9)",
+  "quirkBody": "There is a <strong>pedestrian path along the full 172 metres</strong> of the tunnel on the left-hand side (walking in racing direction). You can walk the entire tunnel section alongside the racing line.",
+  "welcomeSub": "Walk all 19 corners of the Circuit de Monaco with historical facts and live GPS.",
+  "welcomeSteps": [
+    "<strong>Start at the S/F marker</strong> on Boulevard Albert 1er — that's where the race starts and ends each lap.",
+    "<strong>Enable GPS</strong> and the app follows you — auto-advancing to the next corner as you approach. Orange markers mean you're close. Use <strong>Auto</strong> to toggle this.",
+    "<strong>Works offline</strong> — once loaded, the map and app work without internet. Useful as a general Monaco GPS map if roaming doesn't work.",
+    "<strong>Tap Help</strong> anytime for full details on all features."
+  ],
+  "slug": "monaco"
+}
