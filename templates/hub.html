@@ -52,6 +52,9 @@ header p { margin-top: 6px; font-size: 13px; color: #888; max-width: 480px; marg
 footer { padding: 18px 20px 28px; text-align: center; font-size: 11px; color: #444; line-height: 1.6; }
 footer a { color: #666; }
 </style>
+<!-- Cloudflare Web Analytics -->
+<script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "ec3bf39cd9974827a1fa7060f5c7e785"}'></script>
+<!-- End Cloudflare Web Analytics -->
 </head>
 <body>
 <header>
@@ -74,11 +77,15 @@ footer a { color: #666; }
 // since setView() with an explicit zoom doesn't need to measure it.
 const startCircuit = HUB_CIRCUITS[Math.floor(Math.random() * HUB_CIRCUITS.length)];
 const map = L.map("map", {center:[startCircuit.lat, startCircuit.lng], zoom:14, zoomControl:true, attributionControl:false, scrollWheelZoom:true});
-L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {maxZoom:18}).addTo(map);
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {maxZoom:18}).addTo(map);
 
 HUB_CIRCUITS.forEach(c => {
   if (c.line && c.line.length > 1) {
-    const line = L.polyline(c.line, {color:c.color, weight:2, opacity:0.85}).addTo(map);
+    // White halo underneath so the colored line stays legible over any map
+    // feature, not just against the flat gray background this looked fine
+    // on before real tiles were loading.
+    L.polyline(c.line, {color:"#fff", weight:5, opacity:0.9, interactive:false}).addTo(map);
+    const line = L.polyline(c.line, {color:c.color, weight:3, opacity:1}).addTo(map);
     line.on("click", () => { window.location.href = `/${c.slug}/`; });
   }
   const icon = L.divIcon({
