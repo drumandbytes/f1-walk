@@ -1,16 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <defs>
-    <clipPath id="rounded">
-      <rect width="512" height="512" rx="80"/>
-    </clipPath>
-  </defs>
-  <!-- Red top half (Monaco flag) -->
-  <rect width="512" height="512" rx="80" fill="#cc0000"/>
-  <!-- White bottom half -->
-  <rect y="256" width="512" height="256" fill="#ffffff" clip-path="url(#rounded)"/>
-  <!-- F1 text: red on white bottom half -->
-  <text x="256" y="368" text-anchor="middle" dominant-baseline="middle"
-        font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif"
-        font-weight="900" font-size="172" letter-spacing="-6"
-        fill="#cc0000">F1</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Same ring/hub/spoke motif as the site's own favicon (templates/circuit.html,
+       templates/hub.html), in the universal brand red rather than a per-circuit
+       theme color, since this icon is shared across the whole site, not one
+       circuit. Scaled to ~80% and centered so it survives maskable cropping
+       (marked "any maskable" in manifest.json) -- the favicon's original
+       edge-hugging proportions were tuned for a tiny unmasked browser tab,
+       not a home-screen icon that gets cropped into a circle/squircle. -->
+  <rect width="32" height="32" rx="5" fill="#111"/>
+  <circle cx="16" cy="16" r="12" fill="none" stroke="#e8001d" stroke-width="2"/>
+  <circle cx="16" cy="16" r="4.8" fill="none" stroke="#e8001d" stroke-width="2"/>
+  <line x1="16" y1="4" x2="16" y2="11.2" stroke="#e8001d" stroke-width="2.2" stroke-linecap="round"/>
+  <line x1="5.2" y1="20" x2="11.6" y2="16.8" stroke="#e8001d" stroke-width="2.2" stroke-linecap="round"/>
+  <line x1="26.8" y1="20" x2="20.4" y2="16.8" stroke="#e8001d" stroke-width="2.2" stroke-linecap="round"/>
 </svg>
