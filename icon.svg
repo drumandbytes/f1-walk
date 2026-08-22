@@ -1,15 +1,20 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <!-- Same ring/hub/spoke motif as the site's own favicon (templates/circuit.html,
-       templates/hub.html), in the universal brand red rather than a per-circuit
-       theme color, since this icon is shared across the whole site, not one
-       circuit. Scaled to ~80% and centered so it survives maskable cropping
-       (marked "any maskable" in manifest.json) -- the favicon's original
-       edge-hugging proportions were tuned for a tiny unmasked browser tab,
-       not a home-screen icon that gets cropped into a circle/squircle. -->
-  <rect width="32" height="32" rx="5" fill="#111"/>
-  <circle cx="16" cy="16" r="12" fill="none" stroke="#e8001d" stroke-width="2"/>
-  <circle cx="16" cy="16" r="4.8" fill="none" stroke="#e8001d" stroke-width="2"/>
-  <line x1="16" y1="4" x2="16" y2="11.2" stroke="#e8001d" stroke-width="2.2" stroke-linecap="round"/>
-  <line x1="5.2" y1="20" x2="11.6" y2="16.8" stroke="#e8001d" stroke-width="2.2" stroke-linecap="round"/>
-  <line x1="26.8" y1="20" x2="20.4" y2="16.8" stroke="#e8001d" stroke-width="2.2" stroke-linecap="round"/>
+  <!-- Home-screen/app icon (via manifest.json), not any one circuit's
+       browser-tab favicon. Previously reused the ring/hub/spoke shape in
+       brand red, but that's exactly Monaco's own circuit theme color, so it
+       silently read as "Monaco's icon" despite the shape already being
+       generic. A 5-color wedge treatment (matching the hub favicon's pin)
+       was tried and rejected: busy/random-looking for a primary app icon,
+       which wants one bold simple mark, not five thin colored arcs. White
+       sidesteps the collision cleanly since it doesn't match any circuit's
+       theme color, while staying simple.
+       Background is a full square, not pre-rounded: a maskable icon needs an
+       opaque full bleed with no transparent corners; the OS applies its own
+       corner/circle mask on top, it shouldn't be baked in here too. -->
+  <rect width="32" height="32" fill="#111"/>
+  <circle cx="16" cy="16" r="12" fill="none" stroke="#fff" stroke-width="2"/>
+  <circle cx="16" cy="16" r="4.8" fill="none" stroke="#fff" stroke-width="2"/>
+  <line x1="16" y1="4" x2="16" y2="11.2" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>
+  <line x1="5.2" y1="20" x2="11.6" y2="16.8" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>
+  <line x1="26.8" y1="20" x2="20.4" y2="16.8" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>
 </svg>

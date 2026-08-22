@@ -9,7 +9,7 @@ const HUB_TEMPLATE = fs.readFileSync(path.join(ROOT, 'templates', 'hub.html'), '
 const CIRCUITS_DIR = path.join(ROOT, 'circuits');
 const DIST = path.join(ROOT, 'dist');
 
-const STATIC_ASSETS = ['manifest.json', 'sw.js', 'icon.svg', '_headers', 'preview.png'];
+const STATIC_ASSETS = ['manifest.json', 'sw.js', 'icon.svg', 'apple-touch-icon.png', '_headers', 'preview.png'];
 
 // Pulls SF_POS out of a circuit's data.js without executing the whole file
 // (it references an rl() helper that only exists in the page template).

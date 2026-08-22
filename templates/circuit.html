@@ -28,7 +28,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="{{APPLE_TITLE}}">
 <meta name="msvalidate.01" content="B5AD1B4F49A446ECAF18EC09F87B45AA" />
-<link rel="apple-touch-icon" href="/icon.svg">
+<!-- PNG, not icon.svg: iOS Safari's apple-touch-icon support for SVG is
+     unreliable and can silently fall back to a page screenshot instead. -->
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
