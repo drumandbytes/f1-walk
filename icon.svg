@@ -1,20 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <!-- Home-screen/app icon (via manifest.json), not any one circuit's
-       browser-tab favicon. Previously reused the ring/hub/spoke shape in
-       brand red, but that's exactly Monaco's own circuit theme color, so it
-       silently read as "Monaco's icon" despite the shape already being
-       generic. A 5-color wedge treatment (matching the hub favicon's pin)
-       was tried and rejected: busy/random-looking for a primary app icon,
-       which wants one bold simple mark, not five thin colored arcs. White
-       sidesteps the collision cleanly since it doesn't match any circuit's
-       theme color, while staying simple.
+  <!-- Home-screen/app icon (via manifest.json). Two earlier designs (a solid
+       red ring/spoke wheel, then a 5-color wedge version of it) were both
+       symbols invented just for this icon slot that appear nowhere else in
+       the actual app. This instead blows up the real "F1" badge already
+       used everywhere in the live UI (topbar on every page, the welcome
+       screen, the OG share images) so the home-screen icon and the app's
+       actual visual identity are the same mark, matching its real
+       background/text-color/weight (the accent red, #fff, weight 800).
        Background is a full square, not pre-rounded: a maskable icon needs an
        opaque full bleed with no transparent corners; the OS applies its own
        corner/circle mask on top, it shouldn't be baked in here too. -->
-  <rect width="32" height="32" fill="#111"/>
-  <circle cx="16" cy="16" r="12" fill="none" stroke="#fff" stroke-width="2"/>
-  <circle cx="16" cy="16" r="4.8" fill="none" stroke="#fff" stroke-width="2"/>
-  <line x1="16" y1="4" x2="16" y2="11.2" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>
-  <line x1="5.2" y1="20" x2="11.6" y2="16.8" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>
-  <line x1="26.8" y1="20" x2="20.4" y2="16.8" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>
+  <rect width="32" height="32" fill="#e8001d"/>
+  <text x="16" y="17" text-anchor="middle" dominant-baseline="central"
+        font-family="'Helvetica Neue', Arial, sans-serif"
+        font-weight="800" font-size="15"
+        fill="#fff">F1</text>
 </svg>
