@@ -1,18 +1,23 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <!-- Home-screen/app icon (via manifest.json). Two earlier designs (a solid
-       red ring/spoke wheel, then a 5-color wedge version of it) were both
-       symbols invented just for this icon slot that appear nowhere else in
-       the actual app. This instead blows up the real "F1" badge already
-       used everywhere in the live UI (topbar on every page, the welcome
-       screen, the OG share images) so the home-screen icon and the app's
-       actual visual identity are the same mark, matching its real
-       background/text-color/weight (the accent red, #fff, weight 800).
+  <!-- Home-screen/app icon (via manifest.json). Earlier designs (a red
+       ring/spoke wheel, a 5-color wedge version of it, then a plain "F1"
+       badge) were each rejected in turn: the wheel/wedge were symbols
+       invented just for this icon slot with no presence anywhere else in
+       the app, and plain "F1" alone reads as a generic F1-branded icon
+       rather than specifically this app. Two-line "F1" / "WALKS" lockup
+       instead, matching manifest.json's own short_name ("F1 Walks") and the
+       real badge's styling (accent red, #fff, weight 800). Still legible
+       down to 60px, the smallest realistic home-screen icon size (checked).
        Background is a full square, not pre-rounded: a maskable icon needs an
        opaque full bleed with no transparent corners; the OS applies its own
        corner/circle mask on top, it shouldn't be baked in here too. -->
   <rect width="32" height="32" fill="#e8001d"/>
-  <text x="16" y="17" text-anchor="middle" dominant-baseline="central"
+  <text x="16" y="14" text-anchor="middle" dominant-baseline="central"
         font-family="'Helvetica Neue', Arial, sans-serif"
-        font-weight="800" font-size="15"
+        font-weight="800" font-size="12.5"
         fill="#fff">F1</text>
+  <text x="16" y="24" text-anchor="middle" dominant-baseline="central"
+        font-family="'Helvetica Neue', Arial, sans-serif"
+        font-weight="800" font-size="6.2" letter-spacing="0.3"
+        fill="#fff">WALKS</text>
 </svg>
