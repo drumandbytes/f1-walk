@@ -92,7 +92,8 @@ Unofficial fan project. Not affiliated with Formula One Licensing B.V., the Féd
 
 ## License
 
-MIT — see [LICENSE](LICENSE)
+MIT — see [LICENSE](LICENSE). Third-party attributions and the fan-project
+disclaimer are collected in [NOTICE](NOTICE).
 
 ---
 
