@@ -9,7 +9,10 @@ const HUB_TEMPLATE = fs.readFileSync(path.join(ROOT, 'templates', 'hub.html'), '
 const CIRCUITS_DIR = path.join(ROOT, 'circuits');
 const DIST = path.join(ROOT, 'dist');
 
-const STATIC_ASSETS = ['manifest.json', 'sw.js', 'icon.svg', 'apple-touch-icon.png', '_headers', 'preview.png'];
+const STATIC_ASSETS = ['manifest.json', 'sw.js', 'icon.svg', 'apple-touch-icon.png', '_headers', 'preview.png', 'robots.txt'];
+
+const SITE_ORIGIN = 'https://f1walk.drumandbytes.dev';
+const PUBLISHER = { '@type': 'Organization', name: 'Drum and Bytes', url: 'https://drumandbytes.com' };
 
 // Pulls SF_POS out of a circuit's data.js without executing the whole file
 // (it references an rl() helper that only exists in the page template).
@@ -58,6 +61,31 @@ function renderCircuit(slug) {
 
   const modifiedTime = new Date().toISOString().replace(/\.\d{3}Z$/, '+00:00');
   const colors = deriveColors(meta.themeColor);
+
+  const schema = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Article',
+        headline: meta.ogTitle,
+        description: meta.ogDescription,
+        image: meta.ogImage,
+        datePublished: meta.publishedTime,
+        dateModified: modifiedTime,
+        url: meta.canonicalUrl,
+        inLanguage: 'en',
+        author: PUBLISHER,
+        publisher: PUBLISHER,
+      },
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'F1 Circuit Walks', item: `${SITE_ORIGIN}/` },
+          { '@type': 'ListItem', position: 2, name: meta.title, item: meta.canonicalUrl },
+        ],
+      },
+    ],
+  };
   const welcomeStepsHtml = meta.welcomeSteps
     .map((t, i) => `        <div class="welcome-step"><div class="step-num">${i + 1}</div><div class="step-text">${t}</div></div>`)
     .join('\n');
@@ -88,6 +116,7 @@ function renderCircuit(slug) {
     '{{WELCOME_STEPS}}': welcomeStepsHtml,
     '{{SLUG}}': meta.slug,
     '{{SEO_CONTENT}}': seo,
+    '{{SCHEMA_JSON}}': JSON.stringify(schema),
     '/*__CIRCUIT_DATA__*/': data,
   };
 
@@ -103,7 +132,7 @@ function renderCircuit(slug) {
 
 function renderHub(circuits) {
   const cardsHtml = circuits.map(c => `
-    <a class="circuit-card" href="/${c.slug}/" data-slug="${c.slug}" data-total="${c.stopCount}" style="--card-accent:${c.themeColor}">
+    <a class="circuit-card" href="/${c.slug}" data-slug="${c.slug}" data-total="${c.stopCount}" style="--card-accent:${c.themeColor}">
       <div class="circuit-card-name">${c.title}</div>
       <div class="circuit-card-sub">${c.welcomeSub}</div>
       <div class="circuit-card-progress"></div>
@@ -114,8 +143,18 @@ function renderHub(circuits) {
     slug: c.slug, title: c.title, lat: c.lat, lng: c.lng, color: c.themeColor, line: c.racingLine,
   })));
 
+  const hubSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'F1 Circuit Walks',
+    url: `${SITE_ORIGIN}/`,
+    description: 'Free, fan-made walking guides to real F1 street circuits — Monaco, Baku, Singapore, Las Vegas, and Melbourne. GPS tracking, historical facts, offline maps.',
+    publisher: PUBLISHER,
+  };
+
   const tokens = {
     '{{HUB_CARDS}}': cardsHtml,
+    '{{HUB_SCHEMA}}': JSON.stringify(hubSchema),
     '/*__HUB_CIRCUITS__*/': `const HUB_CIRCUITS = ${markersJs};`,
   };
   let out = HUB_TEMPLATE;
@@ -126,6 +165,7 @@ function renderHub(circuits) {
 function main() {
   fs.rmSync(DIST, { recursive: true, force: true });
   fs.mkdirSync(DIST, { recursive: true });
+  fs.mkdirSync(path.join(DIST, 'previews'), { recursive: true });
 
   for (const asset of STATIC_ASSETS) {
     const src = path.join(ROOT, asset);
@@ -145,22 +185,33 @@ function main() {
     const stopCount = countStops(dataSrc);
     const racingLine = extractRacingLine(dataSrc);
     circuitSummaries.push({
-      slug, title: meta.title, welcomeSub: meta.welcomeSub,
+      slug, title: meta.title, welcomeSub: meta.welcomeSub, canonicalUrl: meta.canonicalUrl,
       stopCountLabel: meta.stopCountLabel, themeColor: meta.themeColor, lat, lng, stopCount, racingLine,
     });
 
+    // Flat file, not <slug>/index.html: Cloudflare Pages serves a flat
+    // `<slug>.html` at the no-trailing-slash URL (and 308s `/slug/` -> `/slug`),
+    // which is the form every circuit's meta.json canonicalUrl / og:url uses.
+    // A directory layout gets the opposite treatment (308 `/slug` -> `/slug/`).
     const html = renderCircuit(slug);
-    const outDir = path.join(DIST, slug);
-    fs.mkdirSync(outDir, { recursive: true });
-    fs.writeFileSync(path.join(outDir, 'index.html'), html);
+    fs.writeFileSync(path.join(DIST, `${slug}.html`), html);
     const previewSrc = path.join(dir, 'preview.png');
-    if (fs.existsSync(previewSrc)) fs.copyFileSync(previewSrc, path.join(outDir, 'preview.png'));
-    console.log(`built /${slug}/`);
+    if (fs.existsSync(previewSrc)) fs.copyFileSync(previewSrc, path.join(DIST, 'previews', `${slug}.png`));
+    console.log(`built /${slug}`);
   }
 
   circuitSummaries.sort((a, b) => a.title.localeCompare(b.title));
   fs.writeFileSync(path.join(DIST, 'index.html'), renderHub(circuitSummaries));
   console.log(`built / (hub, ${circuitSummaries.length} circuits)`);
+
+  const lastmod = new Date().toISOString().slice(0, 10);
+  const locs = [`${SITE_ORIGIN}/`, ...circuitSummaries.map(c => c.canonicalUrl)];
+  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n`
+    + `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`
+    + locs.map(loc => `  <url><loc>${loc}</loc><lastmod>${lastmod}</lastmod></url>`).join('\n')
+    + `\n</urlset>\n`;
+  fs.writeFileSync(path.join(DIST, 'sitemap.xml'), sitemap);
+  console.log(`built /sitemap.xml (${locs.length} urls)`);
 }
 
 main();

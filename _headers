@@ -1,24 +1,26 @@
+# Site-wide: security headers + no HTML caching. Every page inlines its own
+# CSS/JS (no hashed asset to bust), so a circuit content edit only reaches
+# visitors if the HTML itself is always refetched. Applies to /, every
+# /<circuit>, sw.js, manifest.json, robots.txt and sitemap.xml alike -- no
+# need to enumerate them, and nothing drifts when a circuit is added.
 /*
   X-Frame-Options: DENY
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: geolocation=(self), camera=(), microphone=(), payment=()
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com; style-src 'self' 'unsafe-inline' https://unpkg.com; img-src 'self' data: https://*.tile.openstreetmap.org; connect-src 'self' https://*.tile.openstreetmap.org; font-src 'self'; manifest-src 'self'; worker-src 'self'
-
-/sw.js
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://unpkg.com; img-src 'self' data: https://*.tile.openstreetmap.org; connect-src 'self' https://*.tile.openstreetmap.org https://cloudflareinsights.com; font-src 'self'; manifest-src 'self'; worker-src 'self'
   Cache-Control: no-cache, no-store, must-revalidate
 
-/manifest.json
-  Cache-Control: no-cache
-
+# Static images opt back out of the no-cache above (more specific path wins).
+# The OG previews get refetched constantly by social-link scrapers.
 /icon.svg
   Cache-Control: public, max-age=86400
 
-/index.html
-  Cache-Control: no-cache, no-store, must-revalidate
+/apple-touch-icon.png
+  Cache-Control: public, max-age=604800
 
-/monaco
-  Cache-Control: no-cache, no-store, must-revalidate
+/preview.png
+  Cache-Control: public, max-age=604800
 
-/monaco/*
-  Cache-Control: no-cache, no-store, must-revalidate
+/previews/*
+  Cache-Control: public, max-age=604800
