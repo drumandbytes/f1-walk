@@ -3,8 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <title>Circuit alignment tool (dev only)</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="stylesheet" href="/vendor/leaflet/leaflet.css"/>
+<script src="/vendor/leaflet/leaflet.js"></script>
+<script src="/geo.js"></script>
 <style>
   html, body { height: 100%; margin: 0; font-family: -apple-system, Helvetica, Arial, sans-serif; background: #111; color: #eee; }
   #app { display: flex; height: 100vh; }
@@ -84,12 +85,7 @@ let mode = null;
 
 function setStatus(msg) { document.getElementById('statusline').textContent = msg; }
 
-function hav(a, b) {
-  const R = 6371000, toRad = x => x*Math.PI/180;
-  const dLat = toRad(b[0]-a[0]), dLng = toRad(b[1]-a[1]);
-  const x = Math.sin(dLat/2)**2 + Math.cos(toRad(a[0]))*Math.cos(toRad(b[0]))*Math.sin(dLng/2)**2;
-  return R*2*Math.atan2(Math.sqrt(x), Math.sqrt(1-x));
-}
+function hav(a, b) { return haversine(a[0], a[1], b[0], b[1]); }
 
 async function loadCircuit(slug) {
   setStatus('Loading ' + slug + '...');
