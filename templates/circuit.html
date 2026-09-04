@@ -32,8 +32,9 @@
 <!-- PNG, not icon.svg: iOS Safari's apple-touch-icon support for SVG is
      unreliable and can silently fall back to a page screenshot instead. -->
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="stylesheet" href="/vendor/leaflet/leaflet.css"/>
+<script src="/vendor/leaflet/leaflet.js"></script>
+<script src="/geo.js"></script>
 <style>
 :root { --accent: {{THEME_COLOR}}; --accent-hover: {{THEME_COLOR_HOVER}}; --accent-rgb: {{THEME_COLOR_RGB}}; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -70,6 +71,10 @@ html, body { height: 100%; font-family: 'Helvetica Neue', Arial, sans-serif; bac
   .topbar-btn { padding: 5px 4px; }
   .f1-badge { padding: 3px 5px; }
 }
+.preload-btn { width: 100%; justify-content: center; }
+.preload-progress { text-align: center; color: #666; }
+.link-accent { color: #5bc4ff; text-decoration: none; }
+.link-accent--bold { font-weight: 600; }
 .topbar-btn:hover { border-color: #444; color: #ccc; }
 #fullscreen-btn.active { border-color: #5bc4ff; color: #5bc4ff; }
 @media (display-mode: standalone) { #fullscreen-btn { display: none; } }
@@ -265,8 +270,8 @@ html, body { height: 100%; font-family: 'Helvetica Neue', Arial, sans-serif; bac
 
       <div class="about-section">
         <h3>Made by Maris</h3>
-        <p>Data engineer based in Estonia. Writing about tech at <a href="https://drumandbytes.com" target="_blank" rel="noopener" style="color:#5bc4ff;text-decoration:none;">drumandbytes.com</a>.</p>
-        <p>Found a bug or want to suggest something? <a href="https://github.com/drumandbytes/f1-walk/issues" target="_blank" rel="noopener" style="color:#5bc4ff;text-decoration:none;">Open an issue on GitHub.</a></p>
+        <p>Data engineer based in Estonia. Writing about tech at <a href="https://drumandbytes.com" target="_blank" rel="noopener" class="link-accent">drumandbytes.com</a>.</p>
+        <p>Found a bug or want to suggest something? <a href="https://github.com/drumandbytes/f1-walk/issues" target="_blank" rel="noopener" class="link-accent">Open an issue on GitHub.</a></p>
         <a class="coffee-btn" href="https://buymeacoffee.com/justmaris" target="_blank" rel="noopener">
           <span class="coffee-icon">☕</span>
           <div class="coffee-meta">Buy me a coffee<span>buymeacoffee.com/justmaris</span></div>
@@ -315,8 +320,8 @@ html, body { height: 100%; font-family: 'Helvetica Neue', Arial, sans-serif; bac
           <p>{{HELP_OFFLINE_NOTE}}</p>
           <p>GPS itself doesn't require internet — your device's location hardware works independently of mobile data.</p>
           <p>Map tiles you've already viewed are cached automatically, or download the whole route now while you have signal:</p>
-          <p><button class="topbar-btn preload-btn" onclick="preloadTiles()" style="width:100%;justify-content:center;">Download map for offline use</button></p>
-          <p class="preload-progress" style="text-align:center;color:#666;"></p>
+          <p><button class="topbar-btn preload-btn" onclick="preloadTiles()">Download map for offline use</button></p>
+          <p class="preload-progress"></p>
         </div>
       </div>
 
@@ -340,7 +345,7 @@ html, body { height: 100%; font-family: 'Helvetica Neue', Arial, sans-serif; bac
       <div class="help-group">
         <button class="help-toggle" onclick="toggleHelp(this)">▸ Data & attribution</button>
         <div class="help-body">
-          <p>Racing line GPS from <a href="https://github.com/bacinger/f1-circuits" target="_blank" rel="noopener" style="color:#5bc4ff;text-decoration:none;font-weight:600;">bacinger/f1-circuits</a> (MIT licence, OpenStreetMap source). Historical facts are original writing.</p>
+          <p>Racing line GPS from <a href="https://github.com/bacinger/f1-circuits" target="_blank" rel="noopener" class="link-accent link-accent--bold">bacinger/f1-circuits</a> (MIT licence, OpenStreetMap source). Historical facts are original writing.</p>
           <p>Unofficial fan project — not affiliated with Formula One Licensing B.V. or any circuit's organising body.</p>
           <div class="data-pills" style="margin-top:8px"><span class="data-pill">✓ GPS stays on-device</span><span class="data-pill">✓ No cookies</span><span class="data-pill">✓ Cookieless analytics only</span></div>
         </div>
@@ -349,7 +354,7 @@ html, body { height: 100%; font-family: 'Helvetica Neue', Arial, sans-serif; bac
       <div class="help-group">
         <button class="help-toggle" onclick="toggleHelp(this)">▸ Issues & feedback</button>
         <div class="help-body">
-          <p>Found a corner that's off? A fact that's wrong? <a href="https://github.com/drumandbytes/f1-walk/issues" target="_blank" rel="noopener" style="color:#5bc4ff;text-decoration:none;font-weight:600;">Open an issue on GitHub</a> — corrections welcome.</p>
+          <p>Found a corner that's off? A fact that's wrong? <a href="https://github.com/drumandbytes/f1-walk/issues" target="_blank" rel="noopener" class="link-accent link-accent--bold">Open an issue on GitHub</a> — corrections welcome.</p>
         </div>
       </div>
 
@@ -366,8 +371,8 @@ html, body { height: 100%; font-family: 'Helvetica Neue', Arial, sans-serif; bac
 {{WELCOME_STEPS}}
       </div>
       <p style="font-size:12px;color:#bba040;margin-top:14px;padding:11px 13px;border:1px solid #4a3a00;border-radius:5px;background:#1a1400;line-height:1.5;">⬇ <strong style="color:#ffd700;">Install as an app</strong> — Safari → Share → "Add to Home Screen" on iOS, or Chrome/Brave on Android. Works offline after first load.</p>
-      <p style="margin-top:10px;"><button class="topbar-btn preload-btn" onclick="preloadTiles()" style="width:100%;justify-content:center;">Download map for offline use</button></p>
-      <p class="preload-progress" style="text-align:center;color:#666;font-size:12px;"></p>
+      <p style="margin-top:10px;"><button class="topbar-btn preload-btn" onclick="preloadTiles()">Download map for offline use</button></p>
+      <p class="preload-progress" style="font-size:12px;"></p>
       <hr class="welcome-divider">
       <p style="font-size:11px;color:#3a3a3a;">No cookies. GPS stays on your device. Fan project — not affiliated with F1 or any circuit's organisers.</p>
       <button class="welcome-start" onclick="startWalk()">Start the walk →</button>
@@ -638,12 +643,6 @@ function onGPSError(err) {
   btn.style.color = "#ff4444";
   setTimeout(() => { btn.style.borderColor = ""; btn.style.color = ""; btn.title = orig; }, 3000);
 }
-function haversine(lat1,lng1,lat2,lng2) {
-  const R=6371000, dLat=(lat2-lat1)*Math.PI/180, dLng=(lng2-lng1)*Math.PI/180;
-  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
-  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
-}
-
 // ── OFFLINE TILE PRELOAD ────────────────────────────────────────
 // Fetches every map tile covering the circuit at the zoom levels the app
 // actually uses (15-17), so a visitor can download the whole route on wifi

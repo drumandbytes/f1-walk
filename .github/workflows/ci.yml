@@ -13,3 +13,12 @@ concurrency:
 jobs:
   security:
     uses: drumandbytes/reusable-actions/.github/workflows/security-scan.yml@v1
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: node --check build.js
+      - run: node --check tools/gen-og-images.js
+      - run: node --test
+      - run: node build.js

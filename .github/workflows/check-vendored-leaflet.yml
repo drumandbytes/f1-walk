@@ -1,0 +1,57 @@
+name: Check vendored Leaflet version
+
+# vendor/leaflet/ is a plain curl'd copy (not npm-installed), so Dependabot
+# can't see or bump it. This checks the upstream npm registry weekly and
+# opens a PR if a newer Leaflet release exists -- still human-reviewed
+# before merge, same as any other dependency bump.
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compare versions
+        id: versions
+        run: |
+          current=$(grep -oE "Leaflet [0-9.]+" vendor/leaflet/leaflet.js | head -1 | grep -oE "[0-9.]+")
+          latest=$(curl -sf https://registry.npmjs.org/leaflet/latest | jq -r .version)
+          echo "current=$current" >> "$GITHUB_OUTPUT"
+          echo "latest=$latest" >> "$GITHUB_OUTPUT"
+          [ "$current" != "$latest" ] && echo "changed=true" >> "$GITHUB_OUTPUT" || echo "changed=false" >> "$GITHUB_OUTPUT"
+
+      - name: Download new version
+        if: steps.versions.outputs.changed == 'true'
+        run: |
+          v=${{ steps.versions.outputs.latest }}
+          curl -sf "https://unpkg.com/leaflet@$v/dist/leaflet.js" -o vendor/leaflet/leaflet.js
+          curl -sf "https://unpkg.com/leaflet@$v/dist/leaflet.css" -o vendor/leaflet/leaflet.css
+          curl -sf "https://unpkg.com/leaflet@$v/dist/images/layers.png" -o vendor/leaflet/images/layers.png
+          curl -sf "https://unpkg.com/leaflet@$v/dist/images/layers-2x.png" -o vendor/leaflet/images/layers-2x.png
+          curl -sf "https://unpkg.com/leaflet@$v/dist/images/marker-icon.png" -o vendor/leaflet/images/marker-icon.png
+
+      - name: Open PR
+        if: steps.versions.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          current=${{ steps.versions.outputs.current }}
+          latest=${{ steps.versions.outputs.latest }}
+          branch="bump-leaflet-$latest"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$branch"
+          git add vendor/leaflet
+          git commit -m "chore: bump vendored Leaflet from $current to $latest"
+          git push origin "$branch" --force
+          gh pr create --title "chore: bump vendored Leaflet $current → $latest" \
+            --body "Automated: newer Leaflet release detected on npm. Review the [changelog](https://github.com/Leaflet/Leaflet/blob/main/CHANGELOG.md) before merging, then spot-check the map still renders." \
+            --head "$branch" --base main || echo "PR already open for $branch"

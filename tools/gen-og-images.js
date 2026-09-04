@@ -6,23 +6,13 @@
 const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
+const { countStops, extractRacingLine } = require('./circuit-data');
 
 const ROOT = path.join(__dirname, '..');
 const CIRCUITS_DIR = path.join(ROOT, 'circuits');
 const FONT = '/System/Library/Fonts/Helvetica.ttc';
 const FONT_BOLD = '/System/Library/Fonts/Supplemental/Arial Bold.ttf';
 const W = 1200, H = 630;
-
-function extractRacingLine(dataJsSrc) {
-  const m = dataJsSrc.match(/const racingLine\s*=\s*(\[[\s\S]*?\n\]);/);
-  if (!m) throw new Error('Could not find racingLine in data.js');
-  return new Function(`return ${m[1]};`)();
-}
-
-function countStops(dataJsSrc) {
-  const matches = dataJsSrc.match(/\{\s*id\s*:\s*\d+\s*,\s*label\s*:/g);
-  return matches.length;
-}
 
 // Maps a circuit's real lat/lng racing line into screen-space points inside
 // a target box, preserving aspect ratio (small-circuit scale, so treating
@@ -122,7 +112,7 @@ pop graphic-context
 function render(mvg, outPath) {
   const tmp = path.join('/tmp', `og-${Date.now()}-${Math.random().toString(36).slice(2)}.mvg`);
   fs.writeFileSync(tmp, mvg);
-  execFileSync('magick', [`mvg:${tmp}`, outPath]);
+  execFileSync('magick', [`mvg:${tmp}`, '-depth', '8', outPath]);
   fs.unlinkSync(tmp);
 }
 

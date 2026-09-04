@@ -1,4 +1,4 @@
-const CACHE = 'circuit-walk-v3';
+const CACHE = 'circuit-walk-v4';
 const TILE_CACHE = 'circuit-tiles-v2';
 // Tiles explicitly downloaded via each circuit's "Download map for offline
 // use" button live here instead, and are never evicted by limitTileCache --
@@ -8,8 +8,9 @@ const TILE_CACHE = 'circuit-tiles-v2';
 const PRIORITY_TILE_CACHE = 'circuit-tiles-priority-v1';
 const MAX_TILE_CACHE = 1000;
 const SHELL = [
-  'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
-  'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
+  '/vendor/leaflet/leaflet.css',
+  '/vendor/leaflet/leaflet.js',
+  '/geo.js',
 ];
 
 self.addEventListener('install', e => {

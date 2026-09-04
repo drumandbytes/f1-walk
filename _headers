@@ -8,7 +8,7 @@
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: geolocation=(self), camera=(), microphone=(), payment=()
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://unpkg.com; img-src 'self' data: https://*.tile.openstreetmap.org; connect-src 'self' https://*.tile.openstreetmap.org https://cloudflareinsights.com; font-src 'self'; manifest-src 'self'; worker-src 'self'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.tile.openstreetmap.org; connect-src 'self' https://*.tile.openstreetmap.org https://cloudflareinsights.com; font-src 'self'; manifest-src 'self'; worker-src 'self'
   Cache-Control: no-cache, no-store, must-revalidate
 
 # Static images opt back out of the no-cache above (more specific path wins).
@@ -23,4 +23,13 @@
   Cache-Control: public, max-age=604800
 
 /previews/*
+  Cache-Control: public, max-age=604800
+
+# Vendored/versioned static JS -- unlike the HTML above, these only change
+# when a commit bumps them (see check-vendored-leaflet.yml), so they're safe
+# to cache like the images above instead of inheriting the no-cache default.
+/vendor/*
+  Cache-Control: public, max-age=604800
+
+/geo.js
   Cache-Control: public, max-age=604800

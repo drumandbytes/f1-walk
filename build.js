@@ -2,6 +2,7 @@
 // No dependencies — runs on the Node preinstalled on GitHub's ubuntu-latest runners.
 const fs = require('fs');
 const path = require('path');
+const { countStops, extractRacingLine } = require('./tools/circuit-data');
 
 const ROOT = __dirname;
 const TEMPLATE = fs.readFileSync(path.join(ROOT, 'templates', 'circuit.html'), 'utf8');
@@ -9,7 +10,7 @@ const HUB_TEMPLATE = fs.readFileSync(path.join(ROOT, 'templates', 'hub.html'), '
 const CIRCUITS_DIR = path.join(ROOT, 'circuits');
 const DIST = path.join(ROOT, 'dist');
 
-const STATIC_ASSETS = ['manifest.json', 'sw.js', 'icon.svg', 'apple-touch-icon.png', '_headers', 'preview.png', 'robots.txt'];
+const STATIC_ASSETS = ['manifest.json', 'sw.js', 'icon.svg', 'apple-touch-icon.png', '_headers', 'preview.png', 'robots.txt', 'geo.js', 'vendor'];
 
 const SITE_ORIGIN = 'https://f1walk.drumandbytes.dev';
 const PUBLISHER = { '@type': 'Organization', name: 'Drum and Bytes', url: 'https://drumandbytes.com' };
@@ -20,23 +21,6 @@ function extractSFPos(dataJsSrc) {
   const m = dataJsSrc.match(/const SF_POS\s*=\s*\[\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*\]/);
   if (!m) throw new Error('Could not find SF_POS in data.js');
   return [parseFloat(m[1]), parseFloat(m[2])];
-}
-
-// Counts stops by matching top-level `{ id:N, label:...` entries in the
-// stops array, for the hub's "X / Y visited" progress display.
-function countStops(dataJsSrc) {
-  const matches = dataJsSrc.match(/\{\s*id\s*:\s*\d+\s*,\s*label\s*:/g);
-  if (!matches) throw new Error('Could not count stops in data.js');
-  return matches.length;
-}
-
-// Pulls the racingLine coordinate array out of a circuit's data.js, for
-// drawing a mini track outline on the hub map. Evaluated as a JS literal
-// (not JSON.parse) since the source array has trailing commas.
-function extractRacingLine(dataJsSrc) {
-  const m = dataJsSrc.match(/const racingLine\s*=\s*(\[[\s\S]*?\n\]);/);
-  if (!m) throw new Error('Could not find racingLine in data.js');
-  return new Function(`return ${m[1]};`)();
 }
 
 // Derives the CSS-variable and favicon color tokens from a single #rrggbb,
@@ -169,7 +153,10 @@ function main() {
 
   for (const asset of STATIC_ASSETS) {
     const src = path.join(ROOT, asset);
-    if (fs.existsSync(src)) fs.copyFileSync(src, path.join(DIST, asset));
+    if (!fs.existsSync(src)) continue;
+    const dest = path.join(DIST, asset);
+    if (fs.statSync(src).isDirectory()) fs.cpSync(src, dest, { recursive: true });
+    else fs.copyFileSync(src, dest);
   }
 
   const slugs = fs.readdirSync(CIRCUITS_DIR).filter(f =>
@@ -214,4 +201,6 @@ function main() {
   console.log(`built /sitemap.xml (${locs.length} urls)`);
 }
 
-main();
+if (require.main === module) main();
+
+module.exports = { deriveColors };
