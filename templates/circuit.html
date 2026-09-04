@@ -160,9 +160,14 @@ html, body { height: 100%; font-family: 'Helvetica Neue', Arial, sans-serif; bac
 
 #progress-section { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: #141414; border: 1px solid #1e1e1e; border-radius: 4px; padding: 10px 12px; margin-bottom: 4px; }
 #progress-stats { font-size: 12px; color: #ccc; line-height: 1.5; }
-#progress-reset-btn { flex-shrink: 0; background: none; border: 1px solid #2a2a2a; color: #666; font-size: 10px; padding: 4px 8px; border-radius: 3px; cursor: pointer; white-space: nowrap; }
-#progress-reset-btn:hover { border-color: #444; color: #999; }
+#progress-btn-group { display: flex; gap: 6px; flex-shrink: 0; }
+#progress-share-btn, #progress-reset-btn { flex-shrink: 0; background: none; border: 1px solid #2a2a2a; color: #666; font-size: 10px; padding: 4px 8px; border-radius: 3px; cursor: pointer; white-space: nowrap; }
+#progress-share-btn:hover, #progress-reset-btn:hover { border-color: #444; color: #999; }
 .progress-note { font-size: 10px; color: #444; margin: 0 0 14px; }
+
+#shared-progress-banner { display: none; align-items: center; justify-content: space-between; gap: 8px; background: #1a1400; border-bottom: 1px solid #4a3a00; color: #ffd700; font-size: 12px; padding: 8px 12px; flex-shrink: 0; }
+#shared-progress-banner.visible { display: flex; }
+#shared-progress-banner button { background: none; border: none; color: #ffd700; cursor: pointer; font-size: 13px; line-height: 1; padding: 0 2px; flex-shrink: 0; }
 
 .help-group { margin-bottom: 6px; border: 1px solid #1e1e1e; border-radius: 4px; overflow: hidden; }
 .help-toggle { width: 100%; text-align: left; background: #141414; border: none; color: #aaa; font-size: 12px; font-weight: 600; padding: 10px 12px; cursor: pointer; letter-spacing: 0.02em; transition: background 0.15s; }
@@ -227,6 +232,7 @@ html, body { height: 100%; font-family: 'Helvetica Neue', Arial, sans-serif; bac
       </div>
     </div>
     <div id="panel">
+      <div id="shared-progress-banner"><span id="shared-progress-text"></span><button onclick="dismissSharedProgress()" title="Dismiss">✕</button></div>
       <div id="progress-bar"><div id="progress-fill"></div></div>
       <div id="panel-header">
         <div id="sector-strip"></div>
@@ -289,7 +295,10 @@ html, body { height: 100%; font-family: 'Helvetica Neue', Arial, sans-serif; bac
 
       <div id="progress-section">
         <div id="progress-stats">No corners visited yet — enable GPS and start walking.</div>
-        <button id="progress-reset-btn" onclick="if(confirm('Reset your progress for this circuit? This can\'t be undone.')) resetCircuitProgress();">Reset progress</button>
+        <div id="progress-btn-group">
+          <button id="progress-share-btn" onclick="shareProgress()">Share progress</button>
+          <button id="progress-reset-btn" onclick="if(confirm('Reset your progress for this circuit? This can\'t be undone.')) resetCircuitProgress();">Reset progress</button>
+        </div>
       </div>
       <p class="progress-note">Stored only on this device (localStorage) — no account, nothing sent anywhere.</p>
 
@@ -482,6 +491,60 @@ function showCompletionToast(elapsedMs, isNewBest) {
   showCompletionToast._t = setTimeout(() => toast.classList.remove('open'), 8000);
 }
 window.dismissCompletionToast = () => document.getElementById('completion-toast')?.classList.remove('open');
+
+// ── SHARE PROGRESS (device-local, no server) ─────────────────────
+// Packs visited-corner indices into a bitmask and best time into whole
+// seconds, both base36 -- short enough for a URL, no JSON/base64 needed.
+// Purely for a friend to glance at; never written back into this device's
+// own progress, so opening a shared link never overwrites your own walk.
+function encodeProgressForShare(progress) {
+  const mask = progress.visited.reduce((m, i) => m | (1 << i), 0);
+  const sec = progress.bestTimeMs != null ? Math.round(progress.bestTimeMs / 1000) : null;
+  return sec != null ? `${mask.toString(36)}.${sec.toString(36)}` : mask.toString(36);
+}
+function decodeSharedProgress(code) {
+  const [maskPart, secPart] = code.split('.');
+  const mask = parseInt(maskPart, 36);
+  if (!Number.isInteger(mask) || mask < 0) return null;
+  const visited = [];
+  for (let i = 0; i < 32; i++) { if (mask & (1 << i)) visited.push(i); }
+  const bestTimeMs = secPart ? parseInt(secPart, 36) * 1000 : null;
+  return { visited, bestTimeMs };
+}
+async function shareProgress() {
+  const progress = getCircuitProgress();
+  if (progress.visited.length === 0) { alert('Nothing to share yet — visit a corner first.'); return; }
+  const url = new URL(location.href);
+  url.search = '';
+  url.searchParams.set('share', encodeProgressForShare(progress));
+  const shareUrl = url.toString();
+  const btn = document.getElementById('progress-share-btn');
+  if (navigator.share) {
+    try { await navigator.share({ title: document.title, url: shareUrl }); return; } catch (e) { /* cancelled or unsupported -- fall back to copy */ }
+  }
+  try {
+    await navigator.clipboard.writeText(shareUrl);
+    if (btn) { const orig = btn.textContent; btn.textContent = 'Copied!'; setTimeout(() => { btn.textContent = orig; }, 1500); }
+  } catch (e) {
+    prompt('Copy this link:', shareUrl);
+  }
+}
+window.shareProgress = shareProgress;
+function dismissSharedProgress() { document.getElementById('shared-progress-banner')?.classList.remove('visible'); }
+window.dismissSharedProgress = dismissSharedProgress;
+function showSharedProgressIfPresent() {
+  const params = new URLSearchParams(location.search);
+  const code = params.get('share');
+  if (!code) return;
+  history.replaceState(null, '', location.pathname);
+  const shared = decodeSharedProgress(code);
+  if (!shared || shared.visited.length === 0) return;
+  const visitedCount = shared.visited.filter(i => i < stops.length).length;
+  let text = `A friend walked ${visitedCount} / ${stops.length} corners`;
+  if (shared.bestTimeMs != null) text += ` · best ${formatDuration(shared.bestTimeMs)}`;
+  document.getElementById('shared-progress-text').textContent = text;
+  document.getElementById('shared-progress-banner').classList.add('visible');
+}
 
 const strip = document.getElementById("sector-strip");
 sectors.forEach(s => {
@@ -858,6 +921,7 @@ try {
   }
 } catch(e) {}
 initMap();
+showSharedProgressIfPresent();
 </script>
 
 <!-- SEO: static crawlable content — visually hidden, fully indexed -->
