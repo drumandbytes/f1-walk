@@ -11,25 +11,35 @@
   Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.tile.openstreetmap.org; connect-src 'self' https://*.tile.openstreetmap.org https://cloudflareinsights.com; font-src 'self'; manifest-src 'self'; worker-src 'self'
   Cache-Control: no-cache, no-store, must-revalidate
 
-# Static images opt back out of the no-cache above (more specific path wins).
+# Static images opt back out of the no-cache above. Cloudflare Pages joins
+# same-named headers from every matching block with a comma rather than
+# letting the more specific one win, so each override must first clear the
+# inherited value with "! Cache-Control" -- see
+# https://developers.cloudflare.com/pages/configuration/headers/#detach-a-header
 # The OG previews get refetched constantly by social-link scrapers.
 /icon.svg
+  ! Cache-Control
   Cache-Control: public, max-age=86400
 
 /apple-touch-icon.png
+  ! Cache-Control
   Cache-Control: public, max-age=604800
 
 /preview.png
+  ! Cache-Control
   Cache-Control: public, max-age=604800
 
 /previews/*
+  ! Cache-Control
   Cache-Control: public, max-age=604800
 
 # Vendored/versioned static JS -- unlike the HTML above, these only change
 # when a commit bumps them (see check-vendored-leaflet.yml), so they're safe
 # to cache like the images above instead of inheriting the no-cache default.
 /vendor/*
+  ! Cache-Control
   Cache-Control: public, max-age=604800
 
 /geo.js
+  ! Cache-Control
   Cache-Control: public, max-age=604800
