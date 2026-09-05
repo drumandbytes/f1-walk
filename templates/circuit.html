@@ -358,7 +358,8 @@ html, body { height: 100%; font-family: 'Helvetica Neue', Arial, sans-serif; bac
         <div class="help-body">
           <p>Racing line GPS from <a href="https://github.com/bacinger/f1-circuits" target="_blank" rel="noopener" class="link-accent link-accent--bold">bacinger/f1-circuits</a> (MIT licence, OpenStreetMap source). Historical facts are original writing.</p>
           <p>Unofficial fan project — not affiliated with Formula One Licensing B.V. or any circuit's organising body.</p>
-          <div class="data-pills" style="margin-top:8px"><span class="data-pill">✓ GPS stays on-device</span><span class="data-pill">✓ No cookies</span><span class="data-pill">✓ Cookieless analytics only</span></div>
+          <p>When GPS confirms you've started a walk, a one-time anonymous ping (which circuit — no location, no device ID) is sent to count how many people have walked it. That check is protected by <a href="https://www.cloudflare.com/turnstile-privacy-policy/" target="_blank" rel="noopener" class="link-accent">Cloudflare Turnstile</a>, which runs in the background to filter automated traffic.</p>
+          <div class="data-pills" style="margin-top:8px"><span class="data-pill">✓ GPS stays on-device</span><span class="data-pill">✓ No cookies</span><span class="data-pill">✓ Cookieless analytics only</span><span class="data-pill">✓ Visit ping has no ID attached</span></div>
         </div>
       </div>
 
@@ -472,10 +473,7 @@ function getTurnstileToken() {
     turnstilePending = settleOnce;
     if (turnstileWidgetId === null) {
       // Off-screen, not display:none -- invisible mode still needs its
-      // iframe genuinely rendered (0 visible size is fine) for the
-      // challenge's internal postMessage handshake to complete. display:none
-      // removes it from the render tree entirely, which is what caused a
-      // real hang here: the widget never got past its init handshake.
+      // iframe genuinely rendered (0 visible size is fine).
       const container = document.createElement('div');
       container.style.cssText = 'position:fixed;bottom:0;right:0;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none;';
       document.body.appendChild(container);
@@ -486,9 +484,15 @@ function getTurnstileToken() {
         callback: (token) => { turnstilePending?.resolve(token); turnstilePending = null; },
         'error-callback': () => { turnstilePending?.reject(new Error('turnstile failed')); turnstilePending = null; },
       });
-    } else {
-      turnstile.execute(turnstileWidgetId);
     }
+    // execution:'execute' means render() alone never runs the challenge --
+    // this call is required every time, including right after the first
+    // render. Missing it on that first call was the real bug: the widget
+    // sat there fully rendered but never told to actually run, hanging
+    // until the timeout above fired. The postMessage/requestExtraParams
+    // console warnings turned out to be unrelated Turnstile-internal noise,
+    // not the cause -- present whether or not the challenge ever runs.
+    turnstile.execute(turnstileWidgetId);
   });
 }
 // Best-effort and silent by design -- a network hiccup or Turnstile failure
