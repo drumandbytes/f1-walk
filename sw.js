@@ -1,4 +1,4 @@
-const CACHE = 'circuit-walk-v4';
+const CACHE = 'circuit-walk-v5';
 const TILE_CACHE = 'circuit-tiles-v2';
 // Tiles explicitly downloaded via each circuit's "Download map for offline
 // use" button live here instead, and are never evicted by limitTileCache --
@@ -66,6 +66,14 @@ self.addEventListener('fetch', e => {
     );
     return;
   }
+
+  // Anything else cross-origin (Turnstile's script, the analytics beacon,
+  // any future third party) is left alone entirely -- there's nothing here
+  // worth caching, and routing it through this worker's own fetch() ties its
+  // success to whatever CSP this worker instance last loaded with, which can
+  // lag behind a live CSP change until the browser's own update cycle
+  // catches up. Letting the browser handle it directly sidesteps that.
+  if (url.origin !== self.location.origin) return;
 
   if (e.request.mode === 'navigate' || e.request.destination === 'document') {
     e.respondWith(
