@@ -35,6 +35,7 @@
 <link rel="stylesheet" href="/vendor/leaflet/leaflet.css"/>
 <script src="/vendor/leaflet/leaflet.js"></script>
 <script src="/geo.js"></script>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <style>
 :root { --accent: {{THEME_COLOR}}; --accent-hover: {{THEME_COLOR_HOVER}}; --accent-rgb: {{THEME_COLOR_RGB}}; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -442,6 +443,68 @@ function formatDuration(ms) {
   const m = Math.floor(totalSec / 60), s = totalSec % 60;
   return `${m}:${String(s).padStart(2,'0')}`;
 }
+// ── HIDDEN VISIT COUNTER (anonymous, no identity crosses the wire) ──
+// Reports once per walk, on reaching S/F for the first time this device has
+// ever recorded it -- not once per corner. See f1walk-stats-worker (in
+// drumandbytes/cloudflare-workers) for the token issuance/redemption design.
+// Collection-only for now: nothing here is displayed on the site yet.
+const STATS_API = 'https://f1walk-stats-worker.maris-0ec.workers.dev';
+const STATS_TURNSTILE_SITEKEY = '0x4AAAAAAEohbng14ahuLaIX';
+let turnstileWidgetId = null;
+let turnstilePending = null;
+const TURNSTILE_TIMEOUT_MS = 10000;
+function getTurnstileToken() {
+  if (typeof turnstile === 'undefined') return Promise.reject(new Error('turnstile not loaded'));
+  if (turnstilePending) return Promise.reject(new Error('turnstile busy'));
+  return new Promise((resolve, reject) => {
+    // If neither callback ever fires (blocked script, unusual environment),
+    // this timeout is what clears turnstilePending -- without it, one stuck
+    // execution would permanently wedge every later visit report behind the
+    // "busy" guard above for the rest of the page's lifetime.
+    const timer = setTimeout(() => {
+      if (turnstilePending === settleOnce) { turnstilePending = null; reject(new Error('turnstile timed out')); }
+    }, TURNSTILE_TIMEOUT_MS);
+    const settleOnce = {
+      resolve: (v) => { clearTimeout(timer); resolve(v); },
+      reject: (e) => { clearTimeout(timer); reject(e); },
+    };
+    turnstilePending = settleOnce;
+    if (turnstileWidgetId === null) {
+      const container = document.createElement('div');
+      container.style.display = 'none';
+      document.body.appendChild(container);
+      turnstileWidgetId = turnstile.render(container, {
+        sitekey: STATS_TURNSTILE_SITEKEY,
+        size: 'invisible',
+        execution: 'execute',
+        callback: (token) => { turnstilePending?.resolve(token); turnstilePending = null; },
+        'error-callback': () => { turnstilePending?.reject(new Error('turnstile failed')); turnstilePending = null; },
+      });
+    } else {
+      turnstile.execute(turnstileWidgetId);
+    }
+  });
+}
+// Best-effort and silent by design -- a network hiccup or Turnstile failure
+// here must never surface to the walker or block anything else on the page.
+async function reportCircuitVisit(circuit) {
+  try {
+    const turnstileToken = await getTurnstileToken();
+    const tokenRes = await fetch(`${STATS_API}/visit-token`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ circuit, turnstileToken }),
+    });
+    if (!tokenRes.ok) return;
+    const { token } = await tokenRes.json();
+    await fetch(`${STATS_API}/visit`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(token),
+    });
+  } catch (e) { /* silent -- see comment above */ }
+}
+
 // Called on every GPS tick regardless of auto-advance, so a stop counts as
 // visited even if the walker starts GPS mid-circuit or browses out of order.
 function checkNearbyVisits(lat, lng) {
@@ -458,6 +521,7 @@ function checkNearbyVisits(lat, lng) {
   });
   if (!wasAtSF && progress.visited.includes(0) && walkStartedAt === null) {
     walkStartedAt = Date.now();
+    reportCircuitVisit('{{SLUG}}');
   }
   if (!wasAtLast && progress.visited.includes(stops.length - 1) && walkStartedAt !== null) {
     const elapsed = Date.now() - walkStartedAt;
