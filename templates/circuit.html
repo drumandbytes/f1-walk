@@ -26,6 +26,7 @@
 <meta name="twitter:image:alt" content="{{OG_IMAGE_ALT}}">
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="{{THEME_COLOR}}">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="{{APPLE_TITLE}}">
@@ -470,8 +471,13 @@ function getTurnstileToken() {
     };
     turnstilePending = settleOnce;
     if (turnstileWidgetId === null) {
+      // Off-screen, not display:none -- invisible mode still needs its
+      // iframe genuinely rendered (0 visible size is fine) for the
+      // challenge's internal postMessage handshake to complete. display:none
+      // removes it from the render tree entirely, which is what caused a
+      // real hang here: the widget never got past its init handshake.
       const container = document.createElement('div');
-      container.style.display = 'none';
+      container.style.cssText = 'position:fixed;bottom:0;right:0;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none;';
       document.body.appendChild(container);
       turnstileWidgetId = turnstile.render(container, {
         sitekey: STATS_TURNSTILE_SITEKEY,
