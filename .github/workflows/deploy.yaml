@@ -24,3 +24,10 @@ jobs:
     secrets:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+  indexnow:
+    needs: deploy
+    uses: drumandbytes/reusable-actions/.github/workflows/indexnow.yml@v1
+    with:
+      host: f1walk.drumandbytes.dev
+      key: ${{ vars.INDEXNOW_KEY }}
