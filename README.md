@@ -2,7 +2,7 @@
 
 Free, fan-made walking guides to real F1 street circuits — with GPS tracking, historical facts, and offline support. Currently covers Monaco, Baku, Singapore, Las Vegas, and Melbourne.
 
-**Live:** [f1walk.drumandbytes.dev](https://f1walk.drumandbytes.dev)
+**Live:** [f1walk.drumandbytes.dev](https://f1walk.drumandbytes.dev) · [More Drumandbytes projects](https://drumandbytes.com/projects/)
 
 ---
 
