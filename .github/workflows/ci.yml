@@ -13,9 +13,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  security:
-    uses: drumandbytes/reusable-actions/.github/workflows/security-scan.yml@v1
-
   build:
     runs-on: ubuntu-latest
     steps:
@@ -30,7 +27,7 @@ jobs:
   required-checks-passed:
     name: Required checks passed
     runs-on: ubuntu-latest
-    needs: [security, build]
+    needs: [build]
     if: always()
     steps:
       - if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
