@@ -1,9 +1,7 @@
 name: Check vendored Leaflet version
 
-# vendor/leaflet/ is a plain curl'd copy (not npm-installed), so Dependabot
-# can't see or bump it. This checks the upstream npm registry weekly and
-# opens a PR if a newer Leaflet release exists -- still human-reviewed
-# before merge, same as any other dependency bump.
+# vendor/leaflet/ is curl'd, so Dependabot can't see it. Opens a PR when
+# npm has a newer Leaflet.
 on:
   schedule:
     - cron: '0 6 * * 1'

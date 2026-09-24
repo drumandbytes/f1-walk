@@ -1,9 +1,7 @@
 name: CI
 
 on:
-  # push had no branch filter, so it fired alongside pull_request on every
-  # commit to an open PR (twice per commit) and again on merge to main for
-  # nothing. One trigger covers both: PR branches via push, main excluded.
+  # PR branches only; main has nothing new after merge.
   push:
     branches-ignore: [main]
   workflow_dispatch:
@@ -12,7 +10,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-# Read-only token; no job here writes to the repo or reads other scopes.
 permissions:
   contents: read
 
@@ -28,13 +25,10 @@ jobs:
       - run: node --test
       - run: node build.js
 
-  # Audit of this repo's own workflows; accepted findings are in
-  # .github/zizmor.yml.
   zizmor:
     uses: drumandbytes/reusable-actions/.github/workflows/zizmor.yml@v1
 
-  # Single stable name for the org's required-status-check ruleset to point
-  # at, regardless of how the real jobs above are split or renamed.
+  # The one name the ruleset requires, however the jobs above change.
   required-checks-passed:
     name: Required checks passed
     runs-on: ubuntu-latest
