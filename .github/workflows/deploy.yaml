@@ -10,7 +10,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-# Read-only token; no job here writes to the repo or reads other scopes.
 permissions:
   contents: read
 
@@ -19,9 +18,7 @@ jobs:
     uses: drumandbytes/reusable-actions/.github/workflows/deploy-cloudflare-pages.yml@v1
     with:
       project-name: monaco-f1-walk
-      # Per-circuit pages are generated from templates/ + circuits/ by build.js,
-      # a dependency-free Node script — no package.json needed, so nothing to
-      # install. ubuntu-latest ships Node, which is all build.js requires.
+      # build.js is dependency-free; the runner's Node is enough.
       install-dependencies: false
       output-directory: "dist"
       build-command: node build.js
