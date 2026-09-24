@@ -10,6 +10,10 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Read-only token; no job here writes to the repo or reads other scopes.
+permissions:
+  contents: read
+
 jobs:
   deploy:
     uses: drumandbytes/reusable-actions/.github/workflows/deploy-cloudflare-pages.yml@v1
