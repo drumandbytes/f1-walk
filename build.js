@@ -10,7 +10,7 @@ const HUB_TEMPLATE = fs.readFileSync(path.join(ROOT, 'templates', 'hub.html'), '
 const CIRCUITS_DIR = path.join(ROOT, 'circuits');
 const DIST = path.join(ROOT, 'dist');
 
-const STATIC_ASSETS = ['manifest.json', 'sw.js', 'icon.svg', 'apple-touch-icon.png', '_headers', 'preview.png', 'robots.txt', 'geo.js', 'vendor', '655f7wqht4d6f46nsf4ht25njqcyx5dx.txt'];
+const STATIC_ASSETS = ['manifest.json', 'sw.js', 'icon.svg', 'apple-touch-icon.png', '_headers', 'preview.png', 'robots.txt', 'geo.js', 'vendor', '655f7wqht4d6f46nsf4ht25njqcyx5dx.txt', '404.html'];
 
 const SITE_ORIGIN = 'https://f1walk.drumandbytes.dev';
 const PUBLISHER = { '@type': 'Organization', name: 'Drum and Bytes', url: 'https://drumandbytes.com' };
