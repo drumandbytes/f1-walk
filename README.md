@@ -90,6 +90,10 @@ Found a corner that's off? A fact that's wrong? [Open an issue](https://github.c
 
 Unofficial fan project. Not affiliated with Formula One Licensing B.V., the Fédération Internationale de l'Automobile, or any circuit's organising body. "Formula 1", "F1", and related marks are trademarks of Formula One Licensing B.V.
 
+## How it was made
+
+Built with the help of an AI coding assistant (Claude). I review and test what gets published.
+
 ## License
 
 MIT — see [LICENSE](LICENSE). Third-party attributions and the fan-project
