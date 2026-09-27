@@ -1,8 +1,5 @@
-# Site-wide: security headers + no HTML caching. Every page inlines its own
-# CSS/JS (no hashed asset to bust), so a circuit content edit only reaches
-# visitors if the HTML itself is always refetched. Applies to /, every
-# /<circuit>, sw.js, manifest.json, robots.txt and sitemap.xml alike -- no
-# need to enumerate them, and nothing drifts when a circuit is added.
+# Site-wide security headers + no HTML caching: pages inline their CSS/JS, so
+# content edits only land if the HTML is always refetched.
 /*
   X-Frame-Options: DENY
   X-Content-Type-Options: nosniff
@@ -11,12 +8,10 @@
   Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.tile.openstreetmap.org; connect-src 'self' https://*.tile.openstreetmap.org https://cloudflareinsights.com https://challenges.cloudflare.com https://f1walk-stats-worker.maris-0ec.workers.dev; frame-src https://challenges.cloudflare.com; font-src 'self'; manifest-src 'self'; worker-src 'self'
   Cache-Control: no-cache, no-store, must-revalidate
 
-# Static images opt back out of the no-cache above. Cloudflare Pages joins
-# same-named headers from every matching block with a comma rather than
-# letting the more specific one win, so each override must first clear the
-# inherited value with "! Cache-Control" -- see
+# Images opt back out. Pages joins same-named headers from every matching
+# block, so clear the inherited value with "! Cache-Control" first:
 # https://developers.cloudflare.com/pages/configuration/headers/#detach-a-header
-# The OG previews get refetched constantly by social-link scrapers.
+# OG previews get refetched constantly by link scrapers.
 /icon.svg
   ! Cache-Control
   Cache-Control: public, max-age=86400
@@ -33,9 +28,7 @@
   ! Cache-Control
   Cache-Control: public, max-age=604800
 
-# Vendored/versioned static JS -- unlike the HTML above, these only change
-# when a commit bumps them (see check-vendored-leaflet.yml), so they're safe
-# to cache like the images above instead of inheriting the no-cache default.
+# Vendored JS only changes via a commit (check-vendored-leaflet.yml), so cache it.
 /vendor/*
   ! Cache-Control
   Cache-Control: public, max-age=604800

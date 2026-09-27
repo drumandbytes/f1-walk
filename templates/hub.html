@@ -81,19 +81,15 @@ footer a { color: #666; }
 </footer>
 <script>
 /*__HUB_CIRCUITS__*/
-// Centers on a random circuit each load rather than a world-wide fit --
-// also sidesteps a Leaflet timing bug where fitBounds() at synchronous
-// script time sees a zero-width container and picks maxZoom instead,
-// since setView() with an explicit zoom doesn't need to measure it.
+// Random circuit each load, not a world fit. setView() also dodges a Leaflet
+// bug where fitBounds() at script time sees a zero-width container.
 const startCircuit = HUB_CIRCUITS[Math.floor(Math.random() * HUB_CIRCUITS.length)];
 const map = L.map("map", {center:[startCircuit.lat, startCircuit.lng], zoom:14, zoomControl:true, attributionControl:false, scrollWheelZoom:true});
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {maxZoom:18}).addTo(map);
 
 HUB_CIRCUITS.forEach(c => {
   if (c.line && c.line.length > 1) {
-    // White halo underneath so the colored line stays legible over any map
-    // feature, not just against the flat gray background this looked fine
-    // on before real tiles were loading.
+    // white halo keeps the line legible over any tile
     L.polyline(c.line, {color:"#fff", weight:5, opacity:0.9, interactive:false}).addTo(map);
     const line = L.polyline(c.line, {color:c.color, weight:3, opacity:1}).addTo(map);
     line.on("click", () => { window.location.href = `/${c.slug}`; });
@@ -110,8 +106,7 @@ HUB_CIRCUITS.forEach(c => {
 
 setTimeout(() => map.invalidateSize(), 50);
 
-// Reads the same device-local progress data each circuit page writes
-// (shared localStorage key, same origin) -- no server involved.
+// same device-local progress key the circuit pages write
 function formatDuration(ms) {
   const totalSec = Math.round(ms / 1000);
   const m = Math.floor(totalSec / 60), s = totalSec % 60;

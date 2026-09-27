@@ -1,9 +1,6 @@
-// Racing line: bacinger/f1-circuits (MIT), us-2023.geojson. Direction verified
-// counterclockwise (matches Wikipedia's "runs counterclockwise") via shoelace
-// signed-area check calibrated against known CW/CCW test shapes -- no reversal
-// needed, unlike Singapore's source data. 100 raw points densified to 213
-// (max gap 39m). Corner positions have been manually aligned against the real
-// track using tools/align.html (one extra point inserted during alignment).
+// Racing line: bacinger/f1-circuits (MIT), us-2023.geojson. CCW, verified by
+// shoelace; no reversal needed. 100 pts densified to 213 (max gap 39m).
+// Corners aligned by hand in tools/align.html (one point inserted).
 const racingLine = [
   [36.109904,-115.161202],[36.11009,-115.160998],[36.110275,-115.160793],[36.110461,-115.160589],[36.110578,-115.160459],[36.110705,-115.160366],
   [36.110856,-115.160335],[36.110992,-115.160414],[36.111079,-115.160543],[36.11115,-115.160775],[36.111179,-115.160996],[36.111169,-115.161209],

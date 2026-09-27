@@ -1,10 +1,7 @@
 const CACHE = 'circuit-walk-v5';
 const TILE_CACHE = 'circuit-tiles-v2';
-// Tiles explicitly downloaded via each circuit's "Download map for offline
-// use" button live here instead, and are never evicted by limitTileCache --
-// only tiles seen incidentally while panning/zooming go through the capped
-// general TILE_CACHE below. Corridor preloads across all 5 circuits total
-// well under 1000 tiles combined, so this cache isn't capped.
+// "Download map for offline" tiles: never evicted by limitTileCache. All 5
+// corridors total well under 1000 tiles, so no cap.
 const PRIORITY_TILE_CACHE = 'circuit-tiles-priority-v1';
 const MAX_TILE_CACHE = 1000;
 const SHELL = [
@@ -67,12 +64,8 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // Anything else cross-origin (Turnstile's script, the analytics beacon,
-  // any future third party) is left alone entirely -- there's nothing here
-  // worth caching, and routing it through this worker's own fetch() ties its
-  // success to whatever CSP this worker instance last loaded with, which can
-  // lag behind a live CSP change until the browser's own update cycle
-  // catches up. Letting the browser handle it directly sidesteps that.
+  // other cross-origin (Turnstile, analytics) is left to the browser: nothing
+  // worth caching, and our fetch() would tie it to a possibly stale CSP
   if (url.origin !== self.location.origin) return;
 
   if (e.request.mode === 'navigate' || e.request.destination === 'document') {

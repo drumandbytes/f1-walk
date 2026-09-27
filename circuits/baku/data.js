@@ -1,20 +1,11 @@
-// Racing line: bacinger/f1-circuits (MIT), az-2016.geojson, 86 pts linearly
-// densified to 182 (max gap 44m). All 20 turns placed via path-curvature
-// analysis of the raw trace (grouping consecutive same-direction bends),
-// matched in order and turn direction against a verified turn-by-turn
-// source (racefans.net). T1-3, T12-15 and T17-20 are continuous same-
-// direction arcs in the source data that the real circuit still numbers
-// as separate corners — those positions are proportional-distance
-// estimates within the confirmed arc, not independently pinned per corner.
+// Racing line: bacinger/f1-circuits (MIT), az-2016.geojson, 86 pts densified to
+// 182 (max gap 44m). All 20 turns placed from path-curvature analysis, matched
+// against racefans.net. T1-3, T12-15 and T17-20 are continuous arcs in the data,
+// so those are proportional estimates, not pinned per corner.
 //
-// speed/gear: minimum corner speed (km/h) and gear, from a technical
-// graphic recurring across autoracing1.com's Baku previews (seen
-// unchanged on both the 2024 and 2025 editions). T13 and T18 were listed
-// there as gear 2 at 265-270 km/h, physically inconsistent with every
-// other corner at that speed in the same dataset (T14/T19/T20 at
-// 290-310 km/h are all gear 8) -- corrected to gear 8 here, since 260+
-// km/h sits solidly in top gear for a modern F1 car. Speed values are
-// left as sourced.
+// speed/gear: min corner speed and gear from autoracing1.com's Baku graphic
+// (2024 and 2025). Its gear 2 for T13/T18 at 265-270 km/h is corrected to 8;
+// speeds as sourced.
 const racingLine = [
   [40.372688,49.853247],[40.372833,49.853691],[40.372978,49.854135],[40.373123,49.854579],[40.373268,49.855023],[40.373325,49.855117],
   [40.373409,49.855177],[40.37349,49.855189],[40.373607,49.855159],[40.373963,49.854979],[40.374319,49.854798],[40.374619,49.854595],

@@ -396,8 +396,7 @@ html, body { height: 100%; font-family: 'Helvetica Neue', Arial, sans-serif; bac
 <script>
 /*__CIRCUIT_DATA__*/
 
-// Turns a racing-line point index into {lat,lng}. Shared across circuits —
-// keep out of circuits/<slug>/data.js, which only supplies racingLine itself.
+// racing-line index -> {lat,lng}; shared, so not in circuits/<slug>/data.js
 function rl(n) { const p = racingLine[n] ?? racingLine[0]; return { lat: p[0], lng: p[1] }; }
 
 const ACCENT = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
@@ -409,11 +408,9 @@ let gpsActive=false, gpsWatchId=null, gpsMarker=null, gpsAccCircle=null;
 let panelCollapsed=false;
 
 // ── LOCAL PROGRESS TRACKING ─────────────────────────────────────
-// Device-local only (localStorage, one key shared across every circuit page
-// on this site) -- no accounts, no server, nothing leaves the device. Marks
-// a stop "visited" the moment GPS confirms the walker was physically within
-// range of it (not just browsed via Prev/Next or the map), and times a full
-// GPS-tracked walk from S/F to the final corner for a personal best.
+// Device-local only (one localStorage key for every circuit). A stop counts
+// as visited once GPS puts the walker in range; a full GPS walk S/F to the last
+// corner is timed for a personal best.
 const PROGRESS_KEY = 'f1walk_progress_v1';
 const VISIT_RADIUS_M = 30;
 let walkStartedAt = null;
@@ -446,10 +443,8 @@ function formatDuration(ms) {
   return `${m}:${String(s).padStart(2,'0')}`;
 }
 // ── HIDDEN VISIT COUNTER (anonymous, no identity crosses the wire) ──
-// Reports once per walk, on reaching S/F for the first time this device has
-// ever recorded it -- not once per corner. See f1walk-stats-worker (in
-// drumandbytes/cloudflare-workers) for the token issuance/redemption design.
-// Collection-only for now: nothing here is displayed on the site yet.
+// Reports once per device, on first reaching S/F. Collection-only, nothing
+// displayed. Design: f1walk-stats-worker in drumandbytes/cloudflare-workers.
 const STATS_API = 'https://f1walk-stats-worker.maris-0ec.workers.dev';
 const STATS_TURNSTILE_SITEKEY = '0x4AAAAAAEohbng14ahuLaIX';
 let turnstileWidgetId = null;
@@ -459,10 +454,8 @@ function getTurnstileToken() {
   if (typeof turnstile === 'undefined') return Promise.reject(new Error('turnstile not loaded'));
   if (turnstilePending) return Promise.reject(new Error('turnstile busy'));
   return new Promise((resolve, reject) => {
-    // If neither callback ever fires (blocked script, unusual environment),
-    // this timeout is what clears turnstilePending -- without it, one stuck
-    // execution would permanently wedge every later visit report behind the
-    // "busy" guard above for the rest of the page's lifetime.
+    // clears turnstilePending if neither callback fires, or one stuck run
+    // wedges every later report behind the busy guard
     const timer = setTimeout(() => {
       if (turnstilePending === settleOnce) { turnstilePending = null; reject(new Error('turnstile timed out')); }
     }, TURNSTILE_TIMEOUT_MS);
@@ -472,8 +465,7 @@ function getTurnstileToken() {
     };
     turnstilePending = settleOnce;
     if (turnstileWidgetId === null) {
-      // Off-screen, not display:none -- invisible mode still needs its
-      // iframe genuinely rendered (0 visible size is fine).
+      // off-screen, not display:none: invisible mode still needs a rendered iframe
       const container = document.createElement('div');
       container.style.cssText = 'position:fixed;bottom:0;right:0;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none;';
       document.body.appendChild(container);
@@ -485,18 +477,13 @@ function getTurnstileToken() {
         'error-callback': () => { turnstilePending?.reject(new Error('turnstile failed')); turnstilePending = null; },
       });
     }
-    // execution:'execute' means render() alone never runs the challenge --
-    // this call is required every time, including right after the first
-    // render. Missing it on that first call was the real bug: the widget
-    // sat there fully rendered but never told to actually run, hanging
-    // until the timeout above fired. The postMessage/requestExtraParams
-    // console warnings turned out to be unrelated Turnstile-internal noise,
-    // not the cause -- present whether or not the challenge ever runs.
+    // execution:'execute': render() never runs the challenge, so execute()
+    // is required every time, first render included. (The postMessage
+    // console warnings are unrelated Turnstile noise.)
     turnstile.execute(turnstileWidgetId);
   });
 }
-// Best-effort and silent by design -- a network hiccup or Turnstile failure
-// here must never surface to the walker or block anything else on the page.
+// best-effort and silent: must never surface to the walker
 async function reportCircuitVisit(circuit) {
   try {
     const turnstileToken = await getTurnstileToken();
@@ -515,8 +502,7 @@ async function reportCircuitVisit(circuit) {
   } catch (e) { /* silent -- see comment above */ }
 }
 
-// Called on every GPS tick regardless of auto-advance, so a stop counts as
-// visited even if the walker starts GPS mid-circuit or browses out of order.
+// every GPS tick, so out-of-order or mid-circuit starts still count
 function checkNearbyVisits(lat, lng) {
   const progress = getCircuitProgress();
   let changed = false;
@@ -567,10 +553,8 @@ function showCompletionToast(elapsedMs, isNewBest) {
 window.dismissCompletionToast = () => document.getElementById('completion-toast')?.classList.remove('open');
 
 // ── SHARE PROGRESS (device-local, no server) ─────────────────────
-// Packs visited-corner indices into a bitmask and best time into whole
-// seconds, both base36 -- short enough for a URL, no JSON/base64 needed.
-// Purely for a friend to glance at; never written back into this device's
-// own progress, so opening a shared link never overwrites your own walk.
+// Visited bitmask + best seconds, base36, short enough for a URL. View-only:
+// never written into the viewer's own progress.
 function encodeProgressForShare(progress) {
   const mask = progress.visited.reduce((m, i) => m | (1 << i), 0);
   const sec = progress.bestTimeMs != null ? Math.round(progress.bestTimeMs / 1000) : null;
@@ -632,9 +616,7 @@ function initMap() {
   map = L.map("map", {center:SF_POS, zoom:15, zoomControl:true, attributionControl:false});
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {maxZoom:20, maxNativeZoom:19}).addTo(map);
 
-  // Keep the map focused on the circuit rather than letting it pan/zoom out
-  // to the whole city — avoids caching (and mobile-data-roaming) tiles the
-  // walk never needs.
+  // keep the map on the circuit so we don't cache (or roam for) city tiles
   circuitBounds = L.latLngBounds(racingLine).pad(0.25);
   map.setMaxBounds(circuitBounds);
   L.polyline(racingLine, {color:ACCENT, weight:5, opacity:0.85, lineJoin:"round", lineCap:"round", smoothFactor:1}).addTo(map);
@@ -658,7 +640,6 @@ function initMap() {
 }
 
 function jumpTo(idx) {
-  // Clear nearby highlight on previous next corner
   const prevNext = document.getElementById(`cm-${activeIdx + 1}`);
   if(prevNext) prevNext.className = "corner-marker";
   activeIdx = idx;
@@ -749,12 +730,9 @@ function onGPSUpdate(pos) {
     if(next < stops.length) {
       const d = haversine(lat, lng, stops[next].lat, stops[next].lng);
       const dCurrent = haversine(lat, lng, stops[activeIdx].lat, stops[activeIdx].lng);
-      // Require genuine progress past the current corner, not just proximity to
-      // the next one -- some corners sit under 25m apart (e.g. Baku's castle
-      // section), so "within range of next" alone can trigger the instant the
-      // current corner activates, before the person has actually walked
-      // anywhere. Also rate-limit so a burst of noisy GPS updates can't chain
-      // through several close corners in one go.
+      // need real progress past the current corner, not just proximity to the
+      // next (some are <25m apart, e.g. Baku's castle section); rate-limited
+      // so GPS noise can't chain through several
       const now = Date.now();
       if(d < 25 && d < dCurrent && (now - lastAutoAdvanceAt) > AUTO_ADVANCE_COOLDOWN_MS) {
         lastAutoAdvanceAt = now;
@@ -773,7 +751,6 @@ function onGPSError(err) {
   const btn = document.getElementById("gps-btn");
   btn.className = "topbar-btn";
   document.getElementById("gps-label").textContent = "GPS";
-  // Brief error tooltip
   const orig = btn.title;
   btn.title = msg;
   btn.style.borderColor = "#ff4444";
@@ -781,12 +758,8 @@ function onGPSError(err) {
   setTimeout(() => { btn.style.borderColor = ""; btn.style.color = ""; btn.title = orig; }, 3000);
 }
 // ── OFFLINE TILE PRELOAD ────────────────────────────────────────
-// Fetches every map tile covering the circuit at the zoom levels the app
-// actually uses (15-17), so a visitor can download the whole route on wifi
-// before losing signal, instead of relying on whatever tiles happened to be
-// on screen while panning around. The service worker already caches any
-// tile.openstreetmap.org fetch (see sw.js), so a plain fetch() per tile is
-// all that's needed here.
+// Fetches every tile at z15-17 so the route can be downloaded on wifi. sw.js
+// caches any tile.openstreetmap.org fetch, so a plain fetch() suffices.
 function tileXY(lat, lng, zoom) {
   const n = Math.pow(2, zoom);
   const x = Math.floor((lng + 180) / 360 * n);
@@ -796,13 +769,9 @@ function tileXY(lat, lng, zoom) {
 }
 let preloadRunning = false;
 const PRIORITY_TILE_CACHE = 'circuit-tiles-priority-v1';
-// Builds the tile set for just a corridor around the actual racing line
-// (every tile the line passes through, plus a 1-tile margin for panning
-// room) instead of the full padded bounding box. For an elongated circuit
-// like Baku or Las Vegas the bounding box is mostly empty city blocks the
-// route never goes near, so this cuts the download by roughly a third —
-// and keeps every circuit's offline set small enough that preloading all
-// of them can't evict each other out of the shared tile cache.
+// Corridor around the racing line (+1 tile margin), not the bounding box:
+// about a third less for Baku/Las Vegas, and small enough that all circuits
+// fit the shared cache together.
 function corridorTileKeys(zoom) {
   const touched = new Set();
   racingLine.forEach(([lat, lng]) => {
@@ -823,8 +792,7 @@ function corridorTileKeys(zoom) {
 async function preloadTiles() {
   if (preloadRunning) return;
   preloadRunning = true;
-  // Two instances of this control exist (welcome popup + help panel) and
-  // stay in sync since they share these classes rather than unique IDs.
+  // two instances (welcome + help) kept in sync via shared classes
   const btns = document.querySelectorAll('.preload-btn');
   const progresses = document.querySelectorAll('.preload-progress');
   const setProgressText = (text) => progresses.forEach(p => p.textContent = text);
@@ -851,9 +819,7 @@ async function preloadTiles() {
         const res = await fetch(url);
         if (res.ok) {
           await priorityCache.put(url, res.clone());
-          // The service worker's own fetch handler also caches this into the
-          // general (capped) bucket on its way back to us -- drop that copy
-          // so preloaded tiles live in exactly one place, not two.
+          // sw.js also cached this into the capped general bucket; drop that copy
           await generalCache.delete(url);
         } else failed++;
       } catch(e) { failed++; }
@@ -921,7 +887,6 @@ document.addEventListener("keydown", e => {
 });
 
 
-// Hide fullscreen button if PWA standalone or iOS or API not supported
 (function() {
   const btn = document.getElementById('fullscreen-btn');
   if(!btn) return;
@@ -983,12 +948,10 @@ async function requestWakeLock() {
 function releaseWakeLock() {
   if(wakeLock) { wakeLock.release(); wakeLock = null; }
 }
-// Re-acquire wake lock if page becomes visible again (e.g. after screen on)
 document.addEventListener('visibilitychange', () => {
   if(document.visibilityState === 'visible' && gpsActive) requestWakeLock();
 });
 
-// Skip welcome if already seen
 try {
   if(localStorage.getItem("{{SLUG}}_walk_welcomed")) {
     document.getElementById("welcome-overlay").classList.add("hidden");
