@@ -1,6 +1,4 @@
 [tools]
-# build.js is dependency-free, so there is no lockfile pinning anything and the
-# deploy workflow installs nothing (install-dependencies: false). node is
-# therefore the entire toolchain, and this file is the only thing recording which
-# version it is meant to be. 24 matches the reusable workflows' default.
+# build.js has no deps and deploy installs nothing, so this is the only record
+# of the Node version. 24 matches the reusable workflows' default.
 node = "24"

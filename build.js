@@ -1,5 +1,5 @@
 // Builds dist/ from templates/circuit.html + circuits/<slug>/{meta.json,data.js,seo.html}.
-// No dependencies — runs on the Node preinstalled on GitHub's ubuntu-latest runners.
+// No dependencies; runs on the runner's preinstalled Node.
 const fs = require('fs');
 const path = require('path');
 const { countStops, extractRacingLine } = require('./tools/circuit-data');
@@ -15,16 +15,14 @@ const STATIC_ASSETS = ['manifest.json', 'sw.js', 'icon.svg', 'apple-touch-icon.p
 const SITE_ORIGIN = 'https://f1walk.drumandbytes.dev';
 const PUBLISHER = { '@type': 'Organization', name: 'Drum and Bytes', url: 'https://drumandbytes.com' };
 
-// Pulls SF_POS out of a circuit's data.js without executing the whole file
-// (it references an rl() helper that only exists in the page template).
+// SF_POS without executing data.js (it calls rl(), which only exists in the template)
 function extractSFPos(dataJsSrc) {
   const m = dataJsSrc.match(/const SF_POS\s*=\s*\[\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*\]/);
   if (!m) throw new Error('Could not find SF_POS in data.js');
   return [parseFloat(m[1]), parseFloat(m[2])];
 }
 
-// Derives the CSS-variable and favicon color tokens from a single #rrggbb,
-// so circuits/<slug>/meta.json only ever has to specify one color.
+// CSS-variable and favicon tokens from one #rrggbb, so meta.json needs just one color
 function deriveColors(hex) {
   const n = parseInt(hex.replace('#', ''), 16);
   const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
@@ -176,10 +174,8 @@ function main() {
       stopCountLabel: meta.stopCountLabel, themeColor: meta.themeColor, lat, lng, stopCount, racingLine,
     });
 
-    // Flat file, not <slug>/index.html: Cloudflare Pages serves a flat
-    // `<slug>.html` at the no-trailing-slash URL (and 308s `/slug/` -> `/slug`),
-    // which is the form every circuit's meta.json canonicalUrl / og:url uses.
-    // A directory layout gets the opposite treatment (308 `/slug` -> `/slug/`).
+    // flat <slug>.html, not <slug>/index.html: Pages serves it at the
+    // no-trailing-slash URL every canonicalUrl uses; a directory 308s the other way
     const html = renderCircuit(slug);
     fs.writeFileSync(path.join(DIST, `${slug}.html`), html);
     const previewSrc = path.join(dir, 'preview.png');

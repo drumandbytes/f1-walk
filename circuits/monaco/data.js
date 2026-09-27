@@ -46,8 +46,7 @@ const racingLine = [
   [43.739299,7.427257],[43.739404,7.427191],
 ];
 
-// Corner positions are read directly from racingLine by index — no coordinate duplication.
-// rl(n) (returns [lat,lng] at racingLine[n]) now lives in templates/circuit.html, shared.
+// Corners index into racingLine; rl(n) lives in templates/circuit.html.
 
 const SF_POS = [43.735700, 7.421216];
 

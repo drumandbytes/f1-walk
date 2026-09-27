@@ -1,6 +1,5 @@
-// Generates circuits/<slug>/preview.png (Open Graph share images) plus the
-// hub's preview.png, from real per-circuit data (title, corner count, theme
-// color, racing line). Requires ImageMagick (`magick`) on PATH.
+// Generates circuits/<slug>/preview.png and the hub's preview.png (OG images).
+// Requires ImageMagick (`magick`) on PATH.
 //
 // Usage: node tools/gen-og-images.js
 const fs = require('fs');
@@ -14,9 +13,7 @@ const FONT = '/System/Library/Fonts/Helvetica.ttc';
 const FONT_BOLD = '/System/Library/Fonts/Supplemental/Arial Bold.ttf';
 const W = 1200, H = 630;
 
-// Maps a circuit's real lat/lng racing line into screen-space points inside
-// a target box, preserving aspect ratio (small-circuit scale, so treating
-// lat/lng degrees as locally equirectangular is fine for a decorative mark).
+// lat/lng -> points in a box, aspect kept; equirectangular is fine for a decorative mark
 function trackToScreenPoints(racingLine, box) {
   const lats = racingLine.map(p => p[0]);
   const lngs = racingLine.map(p => p[1]);
@@ -28,7 +25,6 @@ function trackToScreenPoints(racingLine, box) {
   const drawnW = lngRange * scale, drawnH = latRange * scale;
   const offX = box.x + (box.w - drawnW) / 2;
   const offY = box.y + (box.h - drawnH) / 2;
-  // Downsample for a clean decorative line rather than the full dense path.
   const step = Math.max(1, Math.floor(racingLine.length / 70));
   const sampled = racingLine.filter((_, i) => i % step === 0);
   return sampled.map(([lat, lng]) => {
@@ -152,9 +148,7 @@ function main() {
     hubCircuits.push({ slug, color: meta.themeColor });
   }
 
-  // Hub preview: no single track outline (it represents all circuits), just
-  // small colored pins for each circuit as a light decorative echo of the
-  // per-circuit accent colors used throughout the site.
+  // hub: no single outline, just a colored pin per circuit
   const pins = hubCircuits.map((c, i) => {
     const cols = 3;
     const cx = 760 + (i % cols) * 130;

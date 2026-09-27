@@ -1,20 +1,11 @@
-// Racing line: bacinger/f1-circuits (MIT), sg-2008.geojson. IMPORTANT: the
-// source file traces the lap CLOCKWISE, but Marina Bay is raced
-// COUNTERCLOCKWISE -- reversed here to match. Verified against two real
-// landmarks: War Memorial Park lands at 36.2% of the lap (matches Turn 7,
-// 36.8% proportionally) and Anderson Bridge at 56.7% (matches the Turn
-// 12-13 sequence) -- both within the expected range once reversed, and
-// swapped/wrong before the fix. 116 raw points densified to 181 (max gap
-// 45m).
+// Racing line: bacinger/f1-circuits (MIT), sg-2008.geojson. The source runs
+// CW but Marina Bay is raced CCW, so it's reversed here (checked: War Memorial
+// at 36.2% = T7, Anderson Bridge at 56.7% = T12-13). 116 pts densified to 181
+// (max gap 45m).
 //
-// Corner count reflects the CURRENT post-2023 layout (19 turns, Turns
-// 16-19 of the old 23-turn layout removed and replaced by a straight on
-// Raffles Avenue; old Turn 20 became the new Turn 16). Positions: T1, T7
-// (War Memorial, GPS-confirmed), T12 (Anderson Bridge, GPS-confirmed) and
-// T16 (start of the new post-2023 straight, structurally confirmed) are
-// the strongest anchors. Everything else is proportional distance between
-// those anchors, NOT independently verified per corner -- needs a manual
-// alignment pass against the real track, same as Baku's T12-15/T17-20.
+// Post-2023 19-turn layout (old T16-19 replaced by the Raffles Ave straight;
+// old T20 is now T16). Anchors: T1, T7, T12 (GPS) and T16. Everything else is
+// proportional and needs an alignment pass.
 const racingLine = [
   [1.291728,103.864144],[1.292069,103.864097],[1.292411,103.864049],[1.292752,103.864002],[1.293094,103.863955],[1.293453,103.863926],
   [1.293811,103.863896],[1.29417,103.863867],[1.294298,103.863834],[1.294378,103.863777],[1.294423,103.863665],[1.294402,103.863447],
@@ -51,18 +42,10 @@ const racingLine = [
 
 const SF_POS = [1.291728, 103.864144];
 
-// speed/gear: real minimum corner speeds (km/h) from Wikipedia's "A lap in a
-// Formula One car" section for Marina Bay Street Circuit, kept ONLY where a
-// unique landmark ties the sentence unambiguously to one of our numbered
-// corners (T1 left-hander, T12 Anderson Bridge, T13 Fullerton Hotel hairpin,
-// T18/19 past the Singapore Flyer, etc.) -- 12 of 19 corners qualify. The
-// rest of that Wikipedia section turned out to be an older, not fully
-// renumbered narrative (e.g. it calls Turn 2 a right-hander, but our
-// geometry-verified data has T2 as a left curve), so T2, T4, T11, T14, T15,
-// T16 and T17 are left as null rather than risk attaching a real number to
-// the wrong corner. Gear is derived from speed using the same speed-to-gear
-// bands observed across this app's other circuits (Monaco/Baku), e.g.
-// ~140-160 km/h -> gear 4, ~160-225 -> gear 5, 300+ -> gear 8.
+// speed/gear: min corner speeds from Wikipedia's Marina Bay lap description,
+// only where a landmark pins the corner (12 of 19). That text is partly
+// pre-renumbering, so T2, T4, T11, T14-17 stay null. Gear from the speed bands
+// used on Monaco/Baku (~140-160 -> 4, ~160-225 -> 5, 300+ -> 8).
 const stops = [
   { id:0, label:'S/F', name:'Start / Finish Line', isSF:true,
     ...rl(0), sector:0, speed:null, gear:null, dist:'0.00',

@@ -1,24 +1,12 @@
-// Racing line: bacinger/f1-circuits (MIT), au-1953.geojson. Direction
-// verified clockwise (matches Wikipedia's "the current circuit which runs
-// clockwise") via shoelace signed-area check calibrated against known CW/CCW
-// test shapes -- no reversal needed. Source length (5273m) matches the
-// CURRENT post-2022 14-turn layout (official 5278m) almost exactly, not the
-// old 16-turn layout (~5303m) -- confirmed already up to date, unlike
-// Singapore's source data. 146 raw points densified to 213 (max gap 39m).
+// Racing line: bacinger/f1-circuits (MIT), au-1953.geojson. CW, verified by
+// shoelace. 5273m matches the post-2022 14-turn layout (official 5278m).
+// 146 pts densified to 213 (max gap 39m).
 //
-// Corner numbering: the 2022 changes removed the old Turn 9/10 chicane,
-// shifting every corner after it down by two (old T11->new T9, old T12->new
-// T10, old T13/Ascari->new T11, old T14/Stewart->new T12, old T15/Senna->new
-// T13, old T16/Prost->new T14). This was cross-checked against an
-// independent source (grandprix.com.au) explicitly stating "Turn 9
-// (Previously 11)" etc. before use, since most search results still describe
-// the corners under the old 16-turn numbering.
+// Numbering is post-2022: the old T9/10 chicane is gone, so old T11-16 are
+// now T9-14 (per grandprix.com.au; most sources still use the old numbers).
 //
-// Corner positions are a FIRST-DRAFT estimate: proportionally placed along
-// the lap using the confirmed corner order and the one hard distance known
-// (the 1.3km flat-out straight from Turn 8 into Turn 9) -- not individually
-// GPS-verified per corner. Needs a manual alignment pass against the real
-// track, same as the other circuits' non-anchor corners.
+// Corner positions are a FIRST DRAFT: proportional along the lap from the
+// corner order and the 1.3km T8->T9 straight. Needs an alignment pass.
 const racingLine = [
 [-37.849757,144.968644],[-37.849559,144.96839],[-37.849361,144.968136],[-37.849162,144.967881],[-37.848964,144.967627],[-37.848721,144.967326],
 [-37.848479,144.967025],[-37.848236,144.966723],[-37.847994,144.966422],[-37.847751,144.966121],[-37.847681,144.966034],[-37.847585,144.965997],
