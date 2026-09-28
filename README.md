@@ -16,6 +16,11 @@ A progressive web app (PWA) that guides you around a real F1 street circuit on f
 
 Enable GPS and the app follows you automatically — it advances to the next corner as you approach. A landing page at the site root lets you pick a circuit, see it on a world map, and jump back and forth between circuits.
 
+<p>
+  <img src="docs/hub.jpg" alt="Landing page: circuit picker with the Monaco layout on a map, plus Baku and Las Vegas walk cards" width="300">
+  <img src="docs/monaco.jpg" alt="Monaco walk at stop 2 of 20, Sainte Dévote: apex 210 km/h, gear 5, the chapel fact, and the racing line on the map" width="300">
+</p>
+
 ## Features
 
 - **Live GPS tracking** — auto-advances to the next corner when you're within range, with anti-false-positive logic for corners that sit close together
