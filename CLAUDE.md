@@ -15,6 +15,8 @@ node build.js                  # renders dist/, wipes and rebuilds it every time
 node --test build.test.js      # unit tests (node:test), no test runner installed
 ```
 
+`just build` / `just test` / `just deploy` wrap these (see `justfile`).
+
 Deploy is automatic via GitHub Actions on push to `main` (`.github/workflows/deploy.yaml`, `install-dependencies: false`). Manual deploy: `node build.js && npx wrangler pages deploy dist --project-name monaco-f1-walk`.
 
 Toolchain is just Node (mise.toml pins `node = "24"`; no lockfile because there's nothing to lock).
