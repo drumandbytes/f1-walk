@@ -72,7 +72,7 @@ To work on a circuit's content or copy, edit its files under `circuits/<slug>/`,
 
 Deployments are handled automatically via GitHub Actions on every push to `main`, which runs `node build.js` and publishes `dist/`. Two secrets are required in the repo settings:
 
-- `CLOUDFLARE_API_TOKEN` — org-level secret `dnb-gha-workers-deploy` (Account API token with Cloudflare Pages Edit)
+- `CLOUDFLARE_PAGES_API_TOKEN` — org-level secret, the Account API token `dnb-ci-pages-deploy` (Cloudflare Pages Read/Write only), managed in `dnb-cloudflare-tf/tokens.tf`
 - `CLOUDFLARE_ACCOUNT_ID` — found on the Cloudflare Workers & Pages overview page
 
 To deploy manually:
